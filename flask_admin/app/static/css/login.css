@@ -1,0 +1,90 @@
+/* login.css - Paleta Corporativa Premium MACUIN */
+
+/* 1. Reset y cuerpo */
+:root {
+    /* Variables de Color (ajústalas según tu imagen si lo deseas) */
+    --macuin-primary: #e6a73a; /* Un azul marino corporativo profundo */
+    --macuin-primary-hover: #a1701a;
+    --macuin-body-bg: #f3f4f6; /* Gris muy claro de fondo */
+    --macuin-body-bg-gradient: radial-gradient(circle, #f3f4f6 0%, #ffffff 100%);
+    --macuin-text-dark: #111827;
+    --macuin-text-muted: #6b7280;
+    --macuin-card-bg: #ffffff;
+}
+
+body.login-body {
+    background: var(--macuin-body-bg-gradient);
+    color: var(--macuin-text-dark);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* 2. La Tarjeta de Login */
+.login-card {
+    border-radius: 1rem; /* Bordes suaves */
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.login-logo {
+    max-height: 80px; /* Ajusta la altura máxima del logo */
+    width: auto;
+}
+
+.login-title {
+    font-weight: 800;
+    font-size: 1.75rem;
+    color: var(--macuin-text-dark);
+}
+
+.login-label {
+    font-size: 0.9rem;
+    color: var(--macuin-text-dark);
+}
+
+/* 3. Inputs y Formularios */
+.login-input-group {
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.login-input-group .input-group-text {
+    border: 1px solid #d1d5db; /* Borde gris claro */
+    font-size: 1.1rem;
+}
+
+.login-input {
+    border: 1px solid #d1d5db;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    color: var(--macuin-text-dark);
+}
+
+.login-input:focus {
+    border-color: var(--macuin-primary);
+    box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.1);
+}
+
+/* El input group text también cambia de color al enfocar el input */
+.login-input:focus ~ .input-group-text,
+.login-input-group:focus-within .input-group-text {
+    border-color: var(--macuin-primary);
+}
+
+/* 4. Botón de Entrar */
+.login-btn {
+    border-radius: 0.5rem;
+    padding: 0.85rem;
+    background-color: var(--macuin-primary);
+    border: 1px solid var(--macuin-primary);
+    transition: all 0.2s ease-in-out;
+}
+
+.login-btn:hover,
+.login-btn:focus {
+    background-color: var(--macuin-primary-hover);
+    border-color: var(--macuin-primary-hover);
+    box-shadow: 0 4px 12px -2px rgba(30, 58, 138, 0.3);
+}
+
+/* 5. Clases de Utilidad */
+.fs-7 { font-size: 0.85rem; }
+.text-danger { color: #dc2626 !important; }

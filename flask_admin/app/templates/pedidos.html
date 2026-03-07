@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* Estilos Corporativos para la Tabla de Pedidos */
+    .content-card {
+        background-color: var(--macuin-card-bg, #ffffff);
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    .dashboard-table-container {
+        border-radius: 0.75rem;
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+    }
+
+    .dashboard-table { margin-bottom: 0; }
+
+    .dashboard-table thead th {
+        border: none;
+        background-color: var(--macuin-primary, #1e3a8a);
+        color: #ffffff;
+        text-transform: uppercase;
+        font-weight: 800;
+        font-size: 0.8rem;
+        letter-spacing: 0.05em;
+        padding: 1rem;
+    }
+
+    .dashboard-table tbody tr {
+        transition: background-color 0.2s ease-in-out;
+    }
+
+    .dashboard-table tbody tr:hover {
+        background-color: #f9fafb;
+    }
+
+    .dashboard-table tbody td {
+        vertical-align: middle;
+        padding: 1.25rem 1rem;
+        font-size: 0.95rem;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    /* Estilos modernos para los Badges (Etiquetas) */
+    .badge-modern {
+        padding: 0.5rem 0.8rem;
+        font-weight: 700;
+        font-size: 0.8rem;
+        letter-spacing: 0.02em;
+        border-radius: 0.5rem;
+    }
+
+    .bg-soft-secondary { background-color: #f3f4f6; color: #4b5563; border: 1px solid #d1d5db; }
+    .bg-soft-warning { background-color: #fff7ed; color: var(--macuin-accent, #e6a73a); border: 1px solid #fed7aa; }
+    .bg-soft-success { background-color: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+    .bg-soft-info { background-color: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+
+    /* Estilos para el formulario de cambio de estado en la fila */
+    .status-select {
+        border: 1px solid #d1d5db;
+        border-radius: 0.4rem;
+        font-size: 0.85rem;
+        padding-top: 0.3rem;
+        padding-bottom: 0.3rem;
+        background-color: #f9fafb;
+        color: #4b5563;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    
+    .status-select:focus {
+        border-color: var(--macuin-primary);
+        box-shadow: none;
+        outline: none;
+    }
+
+    .btn-actualizar {
+        background-color: var(--macuin-primary, #1e3a8a);
+        color: white;
+        border: none;
+        border-radius: 0.4rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        padding: 0.3rem 0.8rem;
+        transition: background-color 0.2s;
+    }
+
+    .btn-actualizar:hover {
+        background-color: var(--macuin-primary-hover, #172554);
+        color: white;
+    }
+</style>
+
+<div class="container-fluid pt-3">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <div>
+            <h2 class="fw-bold mb-0 text-dark">Tablero Global de Pedidos</h2>
+            <p class="text-muted fs-7 mb-0">Gestión y seguimiento de órdenes de compra.</p>
+        </div>
+        </div>
+
+    <div class="card content-card">
+        <div class="card-body p-4">
+            
+            <div class="dashboard-table-container">
+                <table class="table table-hover table-striped dashboard-table align-middle">
+                    <thead>
+                        <tr>
+                            <th class="ps-4"># Pedido</th>
+                            <th>Fecha</th>
+                            <th>Total</th>
+                            <th>Estatus Actual</th>
+                            <th>Acción (Cambiar Estatus)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pedido in pedidos %}
+                        <tr>
+                            <td class="ps-4 fw-bold text-muted">ORD-{{ pedido.id }}</td>
+                            <td>
+                                <i class="bi bi-calendar3 text-muted me-2" style="font-size: 0.8rem;"></i>
+                                <span class="fw-medium text-dark">{{ pedido.fecha_pedido.split('.')[0].replace('T', ' ') }}</span>
+                            </td>
+                            <td class="text-success fw-bold">${{ pedido.total }}</td>
+                            <td>
+                                {% if pedido.estatus == 'Recibido' %}
+                                    <span class="badge badge-modern bg-soft-secondary"><i class="bi bi-inbox me-1"></i>Recibido</span>
+                                {% elif pedido.estatus == 'Surtido' %}
+                                    <span class="badge badge-modern bg-soft-warning"><i class="bi bi-box-seam me-1"></i>Surtido</span>
+                                {% elif pedido.estatus == 'Enviado' %}
+                                    <span class="badge badge-modern bg-soft-success"><i class="bi bi-truck me-1"></i>Enviado</span>
+                                {% else %}
+                                    <span class="badge badge-modern bg-soft-info">{{ pedido.estatus }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <form action="{{ url_for('main.cambiar_estatus_pedido', id=pedido.id) }}" method="POST" class="d-flex gap-2 align-items-center mb-0">
+                                    <select name="estatus" class="form-select status-select" required style="width: 140px;">
+                                        <option value="" disabled selected>Seleccionar...</option>
+                                        <option value="Recibido">Recibido</option>
+                                        <option value="Surtido">Surtido</option>
+                                        <option value="Enviado">Enviado</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-actualizar">Guardar</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5">
+                                <i class="bi bi-receipt text-muted" style="font-size: 2.5rem;"></i><br>
+                                <span class="text-muted fw-bold mt-2 d-block">No hay pedidos registrados en el sistema</span>
+                                <small class="text-muted">Los nuevos pedidos aparecerán aquí automáticamente.</small>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

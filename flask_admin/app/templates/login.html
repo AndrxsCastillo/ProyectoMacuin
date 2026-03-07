@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - MACUIN</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+</head>
+<body class="login-body">
+
+    <div class="container">
+        <div class="row min-vh-100 align-items-center justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                
+                <div class="card login-card shadow-lg border-0">
+                    <div class="card-body p-5">
+                        
+                        <div class="text-center mb-5">
+                            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="MACUIN - Autopartes y Motores" class="img-fluid login-logo mb-3">
+                            <h2 class="login-title">Iniciar Sesión</h2>
+                            <p class="text-muted">Acceso para personal administrativo</p>
+                        </div>
+                        
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                {% for category, message in messages %}
+                                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                        <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ message }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+
+                        <form method="POST" action="{{ url_for('main.login') }}">
+                            
+                            <div class="mb-4">
+                                <label for="email" class="form-label fw-bold login-label">Correo Electrónico</label>
+                                <div class="input-group login-input-group">
+                                    <span class="input-group-text bg-white border-end-0 text-muted">
+                                        <i class="bi bi-envelope"></i>
+                                    </span>
+                                    <input type="email" class="form-control border-start-0 ps-0 login-input" id="email" name="email" placeholder="usuario@macuin.com" required>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <label for="password" class="form-label fw-bold login-label mb-0">Contraseña</label>
+                                    <a href="#" class="fs-7 text-decoration-none text-muted">¿Olvidaste tu contraseña?</a>
+                                </div>
+                                <div class="input-group login-input-group">
+                                    <span class="input-group-text bg-white border-end-0 text-muted">
+                                        <i class="bi bi-lock"></i>
+                                    </span>
+                                    <input type="password" class="form-control border-start-0 ps-0 login-input" id="password" name="password" placeholder="••••••••••••" required>
+                                </div>
+                            </div>
+
+                            <div class="d-grid gap-2 pt-2">
+                                <button type="submit" class="btn btn-dark btn-lg login-btn fw-bold">Entrar al Sistema</button>
+                            </div>
+                        </form>
+                        
+                        <div class="text-center mt-5 fs-7 text-muted border-top pt-3">
+                            MACUIN S.A. de C.V. &copy; 2026<br>
+                            Sistema de Gestión Integral de Autopartes
+                        </div>
+
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bundle.min.js"></script>
+</body>
+</html>

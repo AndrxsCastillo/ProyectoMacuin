@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* 1. Tarjetas de Métricas */
+    .metric-card {
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        border-left: 5px solid var(--macuin-primary);
+    }
+    .metric-card.accent { border-left-color: var(--macuin-accent); }
+    .metric-card.success { border-left-color: #16a34a; }
+
+    /* 2. La Tarjeta Contenedora Principal */
+    .report-card {
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        background-color: var(--macuin-card-bg, #ffffff);
+    }
+
+    /* 3. Navegación de Pestañas (Tabs) */
+    .macuin-tabs {
+        border-bottom: 2px solid #e5e7eb;
+        margin-bottom: 1.5rem;
+    }
+
+    /* FIX: Forzamos el color para sobreescribir el blanco de base.html */
+    .macuin-tabs .nav-link {
+        color: #4b5563 !important; /* Gris oscuro visible */
+        font-weight: 600;
+        border: none;
+        border-bottom: 3px solid transparent;
+        padding: 1rem 1.5rem;
+        transition: all 0.2s ease;
+        background: transparent;
+    }
+
+    .macuin-tabs .nav-link:hover {
+        color: var(--macuin-primary) !important;
+        border-bottom-color: #d1d5db;
+    }
+
+    .macuin-tabs .nav-link.active {
+        color: var(--macuin-primary) !important;
+        border-bottom-color: var(--macuin-accent); 
+        background-color: transparent !important;
+    }
+
+    /* 4. Tabla Estilizada */
+    .report-table thead th {
+        background-color: var(--macuin-primary);
+        color: white;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        padding: 1rem;
+        border: none;
+    }
+    
+    .report-table tbody tr:hover { background-color: #f9fafb; }
+    .report-table tbody td {
+        vertical-align: middle;
+        padding: 1.25rem 1rem;
+        border-bottom: 1px solid #f3f4f6;
+    }
+</style>
+
+<div class="container-fluid px-4">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-0 text-dark">Centro de Reportes</h2>
+            <p class="text-muted fs-7 mb-0">Análisis general del ecosistema MACUIN.</p>
+        </div>
+        <button class="btn btn-dark shadow-sm px-4 fw-bold rounded-3">
+            <i class="bi bi-download me-2"></i>Descargar PDF
+        </button>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card metric-card success p-3">
+                <div class="card-body p-2">
+                    <h6 class="text-muted fw-bold mb-1 text-uppercase fs-8">Ingresos Mensuales</h6>
+                    <h3 class="fw-bold text-dark mb-0">$124,500 <span class="fs-6 text-success"><i class="bi bi-arrow-up-short"></i>12%</span></h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card metric-card p-3">
+                <div class="card-body p-2">
+                    <h6 class="text-muted fw-bold mb-1 text-uppercase fs-8">Nuevos Clientes</h6>
+                    <h3 class="fw-bold text-dark mb-0">84 <span class="fs-6 text-muted">+5 esta semana</span></h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card metric-card accent p-3">
+                <div class="card-body p-2">
+                    <h6 class="text-muted fw-bold mb-1 text-uppercase fs-8">Alertas de Stock</h6>
+                    <h3 class="fw-bold text-dark mb-0">12 <span class="fs-6 text-danger"><i class="bi bi-exclamation-circle-fill fs-7"></i> Revisar</span></h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card report-card p-4 mb-5">
+        
+        <ul class="nav nav-tabs macuin-tabs" id="reportTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="ventas-tab" data-bs-toggle="tab" data-bs-target="#ventas" type="button" role="tab" aria-controls="ventas" aria-selected="true">
+                    <i class="bi bi-graph-up-arrow me-2"></i>Ventas
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="clientes-tab" data-bs-toggle="tab" data-bs-target="#clientes" type="button" role="tab" aria-controls="clientes" aria-selected="false">
+                    <i class="bi bi-people-fill me-2"></i>Clientes
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="inventario-tab" data-bs-toggle="tab" data-bs-target="#inventario" type="button" role="tab" aria-controls="inventario" aria-selected="false">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Inventario
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="reportTabsContent">
+            
+            <div class="tab-pane fade show active" id="ventas" role="tabpanel" aria-labelledby="ventas-tab">
+                <div class="table-responsive rounded mt-3">
+                    <table class="table table-hover report-table">
+                        <thead>
+                            <tr>
+                                <th>ID Transacción</th>
+                                <th>Fecha</th>
+                                <th>Monto</th>
+                                <th>Estatus</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="fw-bold">TXN-001</td>
+                                <td>06/03/2026</td>
+                                <td class="fw-bold">$4,500.00</td>
+                                <td><span class="badge bg-success rounded-pill px-3 py-2">Completado</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="clientes" role="tabpanel" aria-labelledby="clientes-tab">
+                <div class="table-responsive rounded mt-3">
+                    <table class="table table-hover report-table">
+                        <thead>
+                            <tr>
+                                <th>Cliente</th>
+                                <th>Correo</th>
+                                <th>Total Compras</th>
+                                <th>Nivel</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="fw-bold">Taller Hermanos</td>
+                                <td>contacto@taller.com</td>
+                                <td>15 pedidos</td>
+                                <td><span class="badge bg-primary rounded-pill px-3 py-2">Mayorista</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="inventario" role="tabpanel" aria-labelledby="inventario-tab">
+                <div class="table-responsive rounded mt-3">
+                    <table class="table table-hover report-table">
+                        <thead>
+                            <tr>
+                                <th>Pieza / Modelo</th>
+                                <th>Categoría</th>
+                                <th>Stock Actual</th>
+                                <th>Acción Recomendada</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="fw-bold">Filtro de Aceite V8</td>
+                                <td>Consumibles</td>
+                                <td class="text-danger fw-bold">2 piezas</td>
+                                <td><span class="badge bg-danger rounded-pill px-3 py-2">Reabastecer urgente</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div> </div>
+</div>
+{% endblock %}

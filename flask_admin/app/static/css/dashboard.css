@@ -1,0 +1,102 @@
+/* dashboard.css - Estilos Corporativos Premium MACUIN */
+
+/* 1. Reset y cuerpo */
+:root {
+    /* Paleta de Colores Corporativa */
+    --macuin-primary: #1e3a8a; /* Azul marino profundo */
+    --macuin-primary-hover: #172554;
+    --macuin-primary-light: #e0f2fe; /* Azul muy claro para fondos de iconos */
+    
+    --macuin-accent: #e6a73a; /* Naranja dorado sofisticado */
+    --macuin-accent-hover: #d1962a;
+    --macuin-accent-light: #fff7ed; /* Naranja muy claro para fondos de iconos */
+    
+    --macuin-success: #16a34a; /* Verde serio */
+    --macuin-success-light: #f0fdf4;
+    
+    --macuin-info: #0284c7; /* Azul cielo serio */
+    --macuin-info-light: #f0f9ff;
+    
+    --macuin-body-bg: #f3f4f6; /* Gris muy claro de fondo */
+    --macuin-body-bg-gradient: radial-gradient(circle, #f3f4f6 0%, #ffffff 100%);
+    --macuin-text-dark: #111827;
+    --macuin-text-muted: #6b7280;
+    --macuin-card-bg: #ffffff;
+}
+
+body.dashboard-body {
+    background: var(--macuin-body-bg-gradient);
+    color: var(--macuin-text-dark);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* 2. Tarjetas de Estadísticas */
+.stat-card {
+    border: none;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+}
+
+.stat-icon-container {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+.stat-card .card-title {
+    font-weight: 800;
+    font-size: 2rem;
+}
+
+/* 3. Tablas del Dashboard */
+.dashboard-table thead th {
+    border: none;
+    text-transform: uppercase;
+    font-weight: 800;
+}
+
+.dashboard-table tbody tr {
+    transition: background-color 0.2s ease-in-out;
+}
+
+.dashboard-table tbody tr:hover {
+    background-color: #f9fafb;
+}
+
+.dashboard-table tbody td {
+    vertical-align: middle;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+/* 4. Clases de Utilidad y Colores */
+.fs-7 { font-size: 0.85rem; }
+.fs-8 { font-size: 0.75rem; }
+
+.text-macuin-primary { color: var(--macuin-primary); }
+.bg-macuin-primary-light { background-color: var(--macuin-primary-light); }
+
+.text-macuin-accent { color: var(--macuin-accent); }
+.bg-macuin-accent-light { background-color: var(--macuin-accent-light); }
+
+.text-success { color: var(--macuin-success); }
+.bg-success-light { background-color: var(--macuin-success-light); }
+
+.text-info { color: var(--macuin-info); }
+.bg-info-light { background-color: var(--macuin-info-light); }
+
+.badge.rounded-pill {
+    padding: 0.5rem 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+}

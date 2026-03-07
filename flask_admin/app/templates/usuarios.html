@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* Estilos Corporativos (Consistentes con Autopartes y Pedidos) */
+    .content-card {
+        background-color: var(--macuin-card-bg, #ffffff);
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    .dashboard-table-container {
+        border-radius: 0.75rem;
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+    }
+
+    .dashboard-table { margin-bottom: 0; }
+
+    .dashboard-table thead th {
+        border: none;
+        background-color: var(--macuin-primary, #1e3a8a);
+        color: #ffffff;
+        text-transform: uppercase;
+        font-weight: 800;
+        font-size: 0.8rem;
+        letter-spacing: 0.05em;
+        padding: 1rem;
+    }
+
+    .dashboard-table tbody tr {
+        transition: background-color 0.2s ease-in-out;
+    }
+
+    .dashboard-table tbody tr:hover {
+        background-color: #f9fafb;
+    }
+
+    .dashboard-table tbody td {
+        vertical-align: middle;
+        padding: 1.25rem 1rem;
+        font-size: 0.95rem;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    /* Botones de Acción Globales */
+    .btn-nuevo {
+        background-color: var(--macuin-accent, #e6a73a);
+        color: var(--macuin-primary, #1e3a8a);
+        border: 1px solid var(--macuin-accent, #e6a73a);
+        border-radius: 0.5rem;
+        font-weight: 700;
+        padding: 0.6rem 1.2rem;
+        transition: all 0.2s ease-in-out;
+    }
+
+    .btn-nuevo:hover {
+        background-color: #d1962a;
+        color: var(--macuin-primary, #1e3a8a);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px -2px rgba(230, 167, 58, 0.4);
+    }
+
+    /* Botones en la fila */
+    .btn-editar {
+        color: var(--macuin-primary, #1e3a8a);
+        background-color: #e0f2fe;
+        border: none;
+        border-radius: 0.4rem;
+        font-weight: 600;
+        font-size: 0.85rem;
+        padding: 0.4rem 0.8rem;
+        transition: all 0.2s;
+    }
+    
+    .btn-editar:hover { background-color: #bae6fd; }
+
+    .btn-borrar {
+        color: #dc2626;
+        background-color: #fee2e2;
+        border: none;
+        border-radius: 0.4rem;
+        font-weight: 600;
+        font-size: 0.85rem;
+        padding: 0.4rem 0.8rem;
+        transition: all 0.2s;
+    }
+
+    .btn-borrar:hover { background-color: #fecaca; }
+
+    /* Indicador de Estado (Puntitos) */
+    .status-dot {
+        height: 8px;
+        width: 8px;
+        background-color: #bbb;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 6px;
+    }
+    .status-dot.active { background-color: #16a34a; }
+</style>
+
+<div class="container-fluid pt-3">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <div>
+            <h2 class="fw-bold mb-0 text-dark">Control de Usuarios</h2>
+            <p class="text-muted fs-7 mb-0">Gestión de personal y accesos al sistema.</p>
+        </div>
+        <a href="{{ url_for('main.crear_usuario') }}" class="btn btn-nuevo shadow-sm">
+            <i class="bi bi-person-plus-fill me-2"></i>Nuevo Usuario
+        </a>
+    </div>
+
+    <div class="card content-card">
+        <div class="card-body p-4">
+            
+            <div class="dashboard-table-container">
+                <table class="table table-hover table-striped dashboard-table align-middle">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">ID</th>
+                            <th>Nombre Completo</th>
+                            <th>Correo Electrónico</th>
+                            <th>Rol</th>
+                            <th>Estado</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for usuario in usuarios %}
+                        <tr>
+                            <td class="ps-4 fw-bold text-muted">#{{ usuario.id }}</td>
+                            <td class="fw-medium text-dark">
+                                <i class="bi bi-person-circle text-muted me-2" style="font-size: 1.1rem;"></i>
+                                {{ usuario.nombre }}
+                            </td>
+                            <td class="text-muted">{{ usuario.email }}</td>
+                            <td><span class="badge bg-secondary rounded-pill fw-bold">{{ usuario.rol }}</span></td>
+                            <td>
+                                {% if usuario.activo %}
+                                    <div class="d-flex align-items-center">
+                                        <span class="status-dot active"></span>
+                                        <span class="text-success fw-bold" style="font-size: 0.85rem;">Activo</span>
+                                    </div>
+                                {% else %}
+                                    <div class="d-flex align-items-center">
+                                        <span class="status-dot"></span>
+                                        <span class="text-muted fw-bold" style="font-size: 0.85rem;">Inactivo</span>
+                                    </div>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <div class="d-flex justify-content-center gap-2">
+                                    <a href="{{ url_for('main.editar_usuario', id=usuario.id) }}" class="btn btn-editar">
+                                        Editar
+                                    </a>
+                                    <form action="{{ url_for('main.borrar_usuario', id=usuario.id) }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-borrar" onclick="return confirm('¿Confirma que desea eliminar permanentemente este usuario?');">
+                                            Eliminar
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center py-5">
+                                <i class="bi bi-people text-muted" style="font-size: 2.5rem;"></i><br>
+                                <span class="text-muted fw-bold mt-2 d-block">No hay usuarios registrados</span>
+                                <small class="text-muted">Haz clic en "Nuevo Usuario" para comenzar.</small>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

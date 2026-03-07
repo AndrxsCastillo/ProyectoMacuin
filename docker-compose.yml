@@ -1,0 +1,46 @@
+services:
+  # 1. Servicio de Base de Datos MySQL
+  db:
+    image: mysql:8.0
+    container_name: macuin_db
+    environment:
+      MYSQL_ROOT_PASSWORD: Bac5dL24
+      MYSQL_DATABASE: autopartes_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      # Aquí mapeamos la carpeta para que corra tu script SQL automático
+      - ./init-db:/docker-entrypoint-initdb.d 
+    restart: always
+
+  # 2. Servicio de nuestra API FastAPI
+  api_central:
+    build: ./api_central
+    container_name: macuin_api
+    ports:
+      - "8000:8000"
+    environment:
+      # OJO AQUÍ: Ya no dice 'localhost', ahora apunta al contenedor 'db'
+      - DATABASE_URL=mysql+pymysql://root:Bac5dL24@db:3306/autopartes_db
+    depends_on:
+      - db
+    restart: always
+
+  # Servicio de flask
+  flask_admin:
+    build: ./flask_admin
+    container_name: flask_admin
+    ports:
+      - "5000:5000"
+    environment:
+      # Aquí conectamos Flask con la API a través de la red interna de Docker
+      - API_URL=http://api_central:8000
+      - SECRET_KEY=una_clave_super_secreta_para_sesiones
+    depends_on:
+      - api_central
+    restart: always
+
+# Volumen para que los datos de MySQL no se borren si apagamos el contenedor
+volumes:
+  db_data:

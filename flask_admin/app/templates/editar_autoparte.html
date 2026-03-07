@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* Estilos Corporativos para Formularios */
+    .form-card {
+        background-color: var(--macuin-card-bg, #ffffff);
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+        overflow: hidden; /* Para que el header respete el borde redondeado */
+    }
+
+    .form-header {
+        background-color: #f8fafc; /* Gris muy clarito casi blanco */
+        border-bottom: 1px solid #e2e8f0;
+        padding: 1.5rem 2rem;
+    }
+
+    .form-body {
+        padding: 2rem;
+    }
+
+    .macuin-label {
+        color: var(--macuin-text-dark, #111827);
+        font-weight: 700;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .macuin-input {
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        padding: 0.6rem 1rem;
+        font-size: 0.95rem;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .macuin-input:focus {
+        border-color: var(--macuin-primary, #1e3a8a);
+        box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+        outline: none;
+    }
+
+    /* Botones de Acción */
+    .btn-guardar {
+        background-color: var(--macuin-accent, #e6a73a);
+        color: var(--macuin-primary, #1e3a8a);
+        border: 1px solid var(--macuin-accent, #e6a73a);
+        border-radius: 0.5rem;
+        font-weight: 700;
+        padding: 0.6rem 1.5rem;
+        transition: all 0.2s ease-in-out;
+    }
+
+    .btn-guardar:hover {
+        background-color: #d1962a;
+        color: var(--macuin-primary, #1e3a8a);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px -2px rgba(230, 167, 58, 0.4);
+    }
+
+    .btn-cancelar {
+        color: #4b5563;
+        background-color: #f3f4f6;
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        padding: 0.6rem 1.2rem;
+        transition: all 0.2s;
+    }
+
+    .btn-cancelar:hover {
+        background-color: #e5e7eb;
+        color: #1f2937;
+    }
+</style>
+
+<div class="row justify-content-center mt-4 mb-5">
+    <div class="col-lg-8 col-md-10">
+        
+        <div class="card form-card">
+            
+            <div class="form-header d-flex align-items-center">
+                <div class="bg-macuin-primary-light p-2 rounded-3 me-3" style="background-color: #e0f2fe; color: #1e3a8a;">
+                    <i class="bi bi-pencil-square fs-4"></i>
+                </div>
+                <div>
+                    <h4 class="mb-0 fw-bold" style="color: #1e3a8a;">Editar Autoparte</h4>
+                    <span class="text-muted fs-7">Modificando el registro ID: <strong>#{{ pieza.id }}</strong></span>
+                </div>
+            </div>
+
+            <div class="card-body form-body">
+                <form action="{{ url_for('main.editar_autoparte', id=pieza.id) }}" method="POST">
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <label class="form-label macuin-label">Nombre de la pieza</label>
+                            <input type="text" class="form-control macuin-input" name="nombre" value="{{ pieza.nombre }}" placeholder="Ej. Filtro de Aceite" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label macuin-label">Marca</label>
+                            <input type="text" class="form-control macuin-input" name="marca" value="{{ pieza.marca }}" placeholder="Ej. Bosch" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label macuin-label">Descripción</label>
+                        <textarea class="form-control macuin-input" name="descripcion" rows="3" placeholder="Detalles técnicos de la pieza...">{{ pieza.descripcion }}</textarea>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <label class="form-label macuin-label">Precio (MXN)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 text-muted">$</span>
+                                <input type="number" step="0.01" class="form-control macuin-input border-start-0 ps-0" name="precio" value="{{ pieza.precio }}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label macuin-label">Categoría</label>
+                            <select class="form-select macuin-input" name="categoria_id" required>
+                                {% for cat in categorias %}
+                                    <option value="{{ cat.id }}" {% if cat.id == pieza.categoria_id %}selected{% endif %}>
+                                        {{ cat.nombre }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <hr class="my-4 text-muted">
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{{ url_for('main.dashboard') }}" class="btn btn-cancelar text-decoration-none">
+                            <i class="bi bi-x-circle me-1"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-guardar">
+                            <i class="bi bi-check-circle me-1"></i> Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+    </div>
+</div>
+{% endblock %}
