@@ -63,3 +63,4 @@ services:
 # Volumen para que los datos de MySQL no se borren si apagamos el contenedor
 volumes:
   db_data:
+  
