@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -7,6 +7,11 @@ from . import models, schemas, crud
 from .database import SessionLocal, engine
 from datetime import datetime, timezone
 from sqlalchemy import func
+from fastapi.responses import StreamingResponse
+import io
+from fpdf import FPDF
+import openpyxl
+from docx import Document
 
 # (Opcional) Crea las tablas en MySQL si no existen, aunque ya corrimos el script SQL
 models.Base.metadata.create_all(bind=engine)
@@ -120,12 +125,29 @@ def leer_autopartes(skip: int = 0, limit: int = 100, db: Session = Depends(get_d
     autopartes = crud.get_autopartes(db, skip=skip, limit=limit)
     return autopartes
 
-@app.get("/autopartes/{autoparte_id}", response_model=schemas.Autoparte, tags=["Autopartes"])
+@app.get("/autopartes/{autoparte_id}", tags=["Autopartes"])
 def leer_autoparte(autoparte_id: int, db: Session = Depends(get_db)):
+    # 1. Traemos la info de la autoparte
     db_autoparte = crud.get_autoparte(db, autoparte_id=autoparte_id)
     if db_autoparte is None:
         raise HTTPException(status_code=404, detail="Autoparte no encontrada")
-    return db_autoparte
+        
+    # 2. Traemos su inventario de la tabla separada
+    db_inventario = db.query(models.Inventario).filter(models.Inventario.autoparte_id == autoparte_id).first()
+    
+    # 3. Armamos un diccionario "libre" con todo junto
+    return {
+        "id": db_autoparte.id,
+        "nombre": db_autoparte.nombre,
+        "descripcion": db_autoparte.descripcion,
+        "categoria_id": db_autoparte.categoria_id,
+        "marca": db_autoparte.marca,
+        "precio": float(db_autoparte.precio),
+        "activo": db_autoparte.activo,
+        # Si encuentra inventario manda el real, si no, manda 0
+        "stock_actual": db_inventario.stock_actual if db_inventario else 0,
+        "stock_minimo": db_inventario.stock_minimo if db_inventario else 0
+    }
 
 @app.put("/autopartes/{autoparte_id}", response_model=schemas.Autoparte, tags=["Autopartes"])
 def actualizar_autoparte(autoparte_id: int, autoparte: schemas.AutoparteUpdate, db: Session = Depends(get_db)):
@@ -250,3 +272,212 @@ def obtener_reportes(db: Session = Depends(get_db)):
 @app.get("/roles/", tags=["Usuarios"])
 def leer_roles(db: Session = Depends(get_db)):
     return db.query(models.Rol).all()
+
+# ==========================================
+# MOTOR GENERADOR DE REPORTES (PDF, XLSX, DOCX)
+# ==========================================
+def generar_archivo(formato: str, titulo: str, columnas: list, datos: list):
+    """Motor genérico para exportar a PDF, Excel o Word"""
+    
+    if formato == "pdf":
+        pdf = FPDF(orientation='L') # Orientación Horizontal (Landscape) para que quepan las tablas
+        pdf.add_page()
+        pdf.set_font("helvetica", "B", 16)
+        
+        # Color azul corporativo para el título
+        pdf.set_text_color(30, 58, 138) # #1e3a8a
+        pdf.cell(0, 10, titulo, ln=True, align="C")
+        pdf.ln(10)
+        
+        # Color y fuente para encabezados de tabla
+        pdf.set_font("helvetica", "B", 10)
+        pdf.set_fill_color(30, 58, 138)
+        pdf.set_text_color(255, 255, 255)
+        
+        ancho_col = 270 / len(columnas) # 270 es aprox el ancho utilizable en Landscape
+        for col in columnas:
+            pdf.cell(ancho_col, 10, str(col), border=1, align="C", fill=True)
+        pdf.ln()
+        
+        # Filas de datos
+        pdf.set_font("helvetica", "", 10)
+        pdf.set_text_color(0, 0, 0)
+        for fila in datos:
+            for item in fila:
+                # Recortamos el texto a 30 caracteres para que no se desborde la celda
+                texto = str(item)
+                if len(texto) > 30:
+                    texto = texto[:27] + "..."
+                pdf.cell(ancho_col, 10, texto, border=1, align="C")
+            pdf.ln()
+            
+        pdf_bytes = pdf.output()
+        return StreamingResponse(io.BytesIO(pdf_bytes), media_type="application/pdf")
+
+    elif formato == "xlsx":
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Reporte MACUIN"
+        
+        # Encabezados
+        ws.append(columnas)
+        # Datos
+        for fila in datos:
+            ws.append(fila)
+        
+        # Auto-ajustar ancho de columnas básico
+        for col in ws.columns:
+            max_length = 0
+            column = col[0].column_letter 
+            for cell in col:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+            adjusted_width = (max_length + 2)
+            ws.column_dimensions[column].width = adjusted_width
+
+        stream = io.BytesIO()
+        wb.save(stream)
+        stream.seek(0)
+        return StreamingResponse(stream, media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
+    elif formato == "docx":
+        doc = Document()
+        doc.add_heading(titulo, 0)
+        
+        tabla = doc.add_table(rows=1, cols=len(columnas))
+        tabla.style = 'Table Grid'
+        
+        # Encabezados
+        hdr_cells = tabla.rows[0].cells
+        for i, col in enumerate(columnas):
+            hdr_cells[i].text = str(col)
+            
+        # Datos
+        for fila in datos:
+            row_cells = tabla.add_row().cells
+            for i, item in enumerate(fila):
+                row_cells[i].text = str(item)
+                
+        stream = io.BytesIO()
+        doc.save(stream)
+        stream.seek(0)
+        return StreamingResponse(stream, media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+
+    raise HTTPException(status_code=400, detail="Formato no soportado")
+
+
+@app.get("/reportes/generar/{tipo}", tags=["Reportes"])
+def descargar_reporte(
+    tipo: str, 
+    formato: str = Query("pdf"),
+    categoria: str = Query(None),
+    rol: str = Query(None),
+    fecha_inicio: str = Query(None),
+    fecha_fin: str = Query(None),
+    db: Session = Depends(get_db)
+):
+    titulo = ""
+    columnas = []
+    datos_matriz = []
+
+    # 1. REPORTE DE INVENTARIO (Usa JOIN con la tabla Categoria e Inventario)
+    if tipo == "inventario":
+        titulo = "Catálogo de Inventario MACUIN"
+        columnas = ["ID", "Nombre", "Marca", "Categoría", "Stock Actual", "Precio"]
+        
+        # Hacemos la consulta base uniendo Autoparte, Categoria e Inventario
+        query = db.query(
+            models.Autoparte.id,
+            models.Autoparte.nombre,
+            models.Autoparte.marca,
+            models.Categoria.nombre.label('categoria_nombre'),
+            models.Inventario.stock_actual,
+            models.Autoparte.precio
+        ).join(models.Categoria).outerjoin(models.Inventario)
+
+        piezas = query.all()
+        
+        for p in piezas:
+            # Si el filtro de categoría está activo, omitimos las que no coincidan
+            if categoria and categoria != "todas":
+                # Convertimos todo a minúsculas y comparamos sin espacios
+                cat_db = str(p.categoria_nombre).lower().replace(" ", "")
+                cat_filtro = str(categoria).lower()
+                if cat_filtro not in cat_db:
+                    continue
+
+            stock = p.stock_actual if p.stock_actual is not None else 0
+            datos_matriz.append([p.id, p.nombre, p.marca, p.categoria_nombre, stock, f"${p.precio}"])
+
+    # 2. REPORTE DE USUARIOS (Usa JOIN con la tabla Rol)
+    elif tipo == "usuarios":
+        titulo = "Directorio de Usuarios del Sistema"
+        columnas = ["ID", "Nombre", "Email", "Rol", "Estado"]
+        
+        query = db.query(
+            models.Usuario.id,
+            models.Usuario.nombre,
+            models.Usuario.email,
+            models.Rol.nombre.label('rol_nombre'),
+            models.Usuario.activo
+        ).join(models.Rol)
+
+        usuarios = query.all()
+        
+        for u in usuarios:
+            if rol and rol != "todos":
+                rol_db = str(u.rol_nombre).lower()
+                if rol != rol_db:
+                    continue
+
+            estado = "Activo" if u.activo else "Inactivo"
+            datos_matriz.append([u.id, u.nombre, u.email, u.rol_nombre, estado])
+
+    # 3. REPORTE DE ALERTAS (Stock Crítico)
+    elif tipo == "alertas":
+        titulo = "Reporte de Stock Crítico (Urgente)"
+        columnas = ["Pieza", "Marca", "Stock Actual", "Mínimo Permitido"]
+        
+        # Filtramos donde stock_actual es menor o igual al stock_minimo
+        piezas_criticas = db.query(
+            models.Autoparte.nombre, 
+            models.Autoparte.marca, 
+            models.Inventario.stock_actual, 
+            models.Inventario.stock_minimo
+        ).join(models.Inventario).filter(models.Inventario.stock_actual <= models.Inventario.stock_minimo).all()
+        
+        for p in piezas_criticas:
+            datos_matriz.append([p.nombre, p.marca, p.stock_actual, p.stock_minimo])
+
+    # 4. REPORTE DE VENTAS (Con filtro de fechas)
+    elif tipo == "ventas":
+        titulo = f"Historial de Ventas ({fecha_inicio} a {fecha_fin})"
+        columnas = ["ID Pedido", "Fecha", "Estatus", "Total"]
+        
+        query = db.query(
+            models.Pedido.id,
+            models.Pedido.fecha_pedido,
+            models.EstadoPedido.nombre.label('estatus'),
+            models.Pedido.total
+        ).join(models.EstadoPedido)
+
+        # TODO: Aquí podrías agregar el .filter() de fechas si tu BD guarda las fechas en formato compatible.
+        # Por ahora lo traemos todo para evitar errores de parseo de fechas en MySQL.
+        pedidos = query.all()
+        
+        for p in pedidos:
+            # Formateamos la fecha si existe
+            fecha_str = p.fecha_pedido.strftime("%Y-%m-%d") if p.fecha_pedido else "N/A"
+            datos_matriz.append([p.id, fecha_str, p.estatus, f"${p.total}"])
+
+    else:
+        raise HTTPException(status_code=404, detail="Tipo de reporte no existe")
+
+    # Si después de filtrar no hay datos, agregamos una fila indicándolo para que no truene el archivo
+    if not datos_matriz:
+        datos_matriz.append(["-", "No hay datos", "para estos", "filtros", "-", "-"])
+
+    return generar_archivo(formato, titulo, columnas, datos_matriz)

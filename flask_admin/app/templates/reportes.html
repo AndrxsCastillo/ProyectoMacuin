@@ -2,7 +2,7 @@
 
 {% block content %}
 <style>
-    /* 1. Tarjetas de Métricas */
+    /* 1. Tarjetas de Métricas Superior (Sin cambios) */
     .metric-card {
         border: none;
         border-radius: 1rem;
@@ -12,87 +12,99 @@
     .metric-card.accent { border-left-color: var(--macuin-accent); }
     .metric-card.success { border-left-color: #16a34a; }
 
-    /* 2. La Tarjeta Contenedora Principal */
-    .report-card {
+    /* 2. Tarjetas del Generador con Encabezado Azul */
+    .gen-card {
+        background-color: var(--macuin-card-bg, #ffffff);
         border: none;
         border-radius: 1rem;
         box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
-        background-color: var(--macuin-card-bg, #ffffff);
+        overflow: hidden; /* Necesario para redondear el encabezado */
+        height: 100%;
     }
 
-    /* 3. Navegación de Pestañas (Tabs) */
-    .macuin-tabs {
-        border-bottom: 2px solid #e5e7eb;
-        margin-bottom: 1.5rem;
-    }
-
-    /* FIX: Forzamos el color para sobreescribir el blanco de base.html */
-    .macuin-tabs .nav-link {
-        color: #4b5563 !important; /* Gris oscuro visible */
-        font-weight: 600;
-        border: none;
-        border-bottom: 3px solid transparent;
+    .gen-card-header {
+        background-color: var(--macuin-primary, #1e3a8a); /* Azul sutil incorporado */
+        color: #ffffff;
         padding: 1rem 1.5rem;
-        transition: all 0.2s ease;
-        background: transparent;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
     }
 
-    .macuin-tabs .nav-link:hover {
-        color: var(--macuin-primary) !important;
-        border-bottom-color: #d1d5db;
+    .gen-card-body {
+        padding: 1.5rem;
     }
 
-    .macuin-tabs .nav-link.active {
-        color: var(--macuin-primary) !important;
-        border-bottom-color: var(--macuin-accent); 
-        background-color: transparent !important;
-    }
-
-    /* 4. Tabla Estilizada */
-    .report-table thead th {
-        background-color: var(--macuin-primary);
-        color: white;
+    /* 3. Estilos de Formulario */
+    .macuin-label {
+        color: #4b5563;
         font-weight: 700;
-        text-transform: uppercase;
         font-size: 0.85rem;
-        padding: 1rem;
-        border: none;
+        margin-bottom: 0.4rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .macuin-input-lg {
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        border-radius: 0.75rem;
+        border: 2px solid #e5e7eb;
     }
     
-    .report-table tbody tr:hover { background-color: #f9fafb; }
-    .report-table tbody td {
-        vertical-align: middle;
-        padding: 1.25rem 1rem;
-        border-bottom: 1px solid #f3f4f6;
+    .macuin-input-lg:focus {
+        border-color: var(--macuin-accent, #e6a73a);
+        box-shadow: 0 0 0 4px rgba(230, 167, 58, 0.15);
     }
+
+    /* 4. Animación suave para el panel de filtros */
+    .fade-in {
+        animation: fadeIn 0.4s ease-in-out;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateX(10px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+
+    /* 5. Botón de Generar Reporte (Naranja MACUIN) */
+    .btn-generar {
+        background-color: #1867D2;
+        color: #ffffff; /* Texto en blanco para hacer buen contraste */
+        border: none;
+        transition: all 0.2s ease-in-out;
+    }
+    
+    .btn-generar:hover {
+        background-color: #1559b7; /* Un naranja ligeramente más oscuro al pasar el mouse */
+        color: #ffffff;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px -3px rgba(242, 157, 18, 0.4);
+    }
+
 </style>
 
-<div class="container-fluid px-4">
+<div class="container-fluid pt-3">
     
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
         <div>
             <h2 class="fw-bold mb-0 text-dark">Centro de Reportes</h2>
-            <p class="text-muted fs-7 mb-0">Análisis general del ecosistema MACUIN.</p>
+            <p class="text-muted fs-7 mb-0">Análisis general del ecosistema.</p>
         </div>
-        <button class="btn btn-dark shadow-sm px-4 fw-bold rounded-3">
-            <i class="bi bi-download me-2"></i>Descargar PDF
-        </button>
     </div>
 
     <div class="row mb-4">
         <div class="col-md-4">
             <div class="card metric-card success p-3">
                 <div class="card-body p-2">
-                    <h6 class="text-muted fw-bold mb-1 text-uppercase fs-8">Ingresos Mensuales</h6>
-                    <h3 class="fw-bold text-dark mb-0">$124,500 <span class="fs-6 text-success"><i class="bi bi-arrow-up-short"></i>12%</span></h3>
+                    <h6 class="text-muted fw-bold mb-1 text-uppercase fs-8">Ingresos Totales</h6>
+                    <h3 class="fw-bold text-dark mb-0">${{ metricas.ingresos }} <span class="fs-6 text-success"><i class="bi bi-graph-up"></i> Global</span></h3>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
             <div class="card metric-card p-3">
                 <div class="card-body p-2">
-                    <h6 class="text-muted fw-bold mb-1 text-uppercase fs-8">Nuevos Clientes</h6>
-                    <h3 class="fw-bold text-dark mb-0">84 <span class="fs-6 text-muted">+5 esta semana</span></h3>
+                    <h6 class="text-muted fw-bold mb-1 text-uppercase fs-8">Total de Pedidos</h6>
+                    <h3 class="fw-bold text-dark mb-0">{{ metricas.pedidos }} <span class="fs-6 text-muted"><i class="bi bi-cart-check"></i> Registrados</span></h3>
                 </div>
             </div>
         </div>
@@ -100,103 +112,202 @@
             <div class="card metric-card accent p-3">
                 <div class="card-body p-2">
                     <h6 class="text-muted fw-bold mb-1 text-uppercase fs-8">Alertas de Stock</h6>
-                    <h3 class="fw-bold text-dark mb-0">12 <span class="fs-6 text-danger"><i class="bi bi-exclamation-circle-fill fs-7"></i> Revisar</span></h3>
+                    <h3 class="fw-bold text-dark mb-0">{{ metricas.alertas }} 
+                        {% if metricas.alertas > 0 %}
+                            <span class="fs-6 text-danger"><i class="bi bi-exclamation-circle-fill fs-7"></i> Revisar</span>
+                        {% else %}
+                            <span class="fs-6 text-success"><i class="bi bi-check-circle-fill fs-7"></i> Óptimo</span>
+                        {% endif %}
+                    </h3>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="card report-card p-4 mb-5">
+    <div class="d-flex align-items-center mb-3 mt-5">
+        <i class="bi bi-printer-fill text-dark fs-4 me-2"></i>
+        <h4 class="fw-bold mb-0 text-dark">Generador de Reportes</h4>
+    </div>
+    <hr class="mb-4 text-muted">
+
+    <div class="row mb-5 g-4">
         
-        <ul class="nav nav-tabs macuin-tabs" id="reportTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="ventas-tab" data-bs-toggle="tab" data-bs-target="#ventas" type="button" role="tab" aria-controls="ventas" aria-selected="true">
-                    <i class="bi bi-graph-up-arrow me-2"></i>Ventas
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="clientes-tab" data-bs-toggle="tab" data-bs-target="#clientes" type="button" role="tab" aria-controls="clientes" aria-selected="false">
-                    <i class="bi bi-people-fill me-2"></i>Clientes
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="inventario-tab" data-bs-toggle="tab" data-bs-target="#inventario" type="button" role="tab" aria-controls="inventario" aria-selected="false">
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Inventario
-                </button>
-            </li>
-        </ul>
+        <div class="col-lg-5">
+            <div class="card gen-card">
+                <div class="gen-card-header d-flex align-items-center">
+                    <i class="bi bi-sliders me-3 fs-5"></i>
+                    <h5 class="mb-0 fw-bold">Configuración del Reporte</h5>
+                </div>
+                <div class="gen-card-body">
+                    
+                    <div class="mb-4">
+                        <label class="form-label macuin-label">1. Seleccione el tipo de información</label>
+                        <select class="form-select macuin-input-lg shadow-sm" id="selectorReporte">
+                            <option value="" selected disabled>-- Elija una opción --</option>
+                            <option value="ventas">Historial de Ventas y Pedidos</option>
+                            <option value="inventario">Catálogo de Inventario</option>
+                            <option value="usuarios">Directorio de Usuarios</option>
+                            <option value="alertas">Alertas de Stock Crítico</option>
+                        </select>
+                    </div>
 
-        <div class="tab-content" id="reportTabsContent">
+                    <div class="mb-4">
+                        <label class="form-label macuin-label">2. Elija el formato de descarga</label>
+                        <select class="form-select macuin-input-lg shadow-sm" id="selectorFormatoGlobal" required>
+                            <option value="pdf" selected>Documento PDF (.pdf)</option>
+                            <option value="xlsx">Hoja de Cálculo Excel (.xlsx)</option>
+                            <option value="docx">Documento Word (.docx)</option>
+                        </select>
+                    </div>
+
+                    <div class="alert alert-info p-3 fs-7 mb-0 rounded-3 border-0 bg-light text-muted">
+                        <i class="bi bi-info-circle-fill me-2 text-macuin-primary"></i> 
+                        Una vez configurados los filtros en el panel derecho, presione el botón "Generar" que aparecerá allí.
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
             
-            <div class="tab-pane fade show active" id="ventas" role="tabpanel" aria-labelledby="ventas-tab">
-                <div class="table-responsive rounded mt-3">
-                    <table class="table table-hover report-table">
-                        <thead>
-                            <tr>
-                                <th>ID Transacción</th>
-                                <th>Fecha</th>
-                                <th>Monto</th>
-                                <th>Estatus</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td class="fw-bold">TXN-001</td>
-                                <td>06/03/2026</td>
-                                <td class="fw-bold">$4,500.00</td>
-                                <td><span class="badge bg-success rounded-pill px-3 py-2">Completado</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+            <div id="estadoInicialFiltros" class="card gen-card h-100 bg-light border-0 d-flex align-items-center justify-content-center text-center p-5">
+                <i class="bi bi-arrow-left-circle text-muted mb-3" style="font-size: 3rem;"></i>
+                <h5 class="text-muted fw-bold">Esperando configuración</h5>
+                <p class="text-muted fs-7 mb-0">Seleccione un tipo de reporte en el panel izquierdo para definir los filtros específicos.</p>
             </div>
 
-            <div class="tab-pane fade" id="clientes" role="tabpanel" aria-labelledby="clientes-tab">
-                <div class="table-responsive rounded mt-3">
-                    <table class="table table-hover report-table">
-                        <thead>
-                            <tr>
-                                <th>Cliente</th>
-                                <th>Correo</th>
-                                <th>Total Compras</th>
-                                <th>Nivel</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td class="fw-bold">Taller Hermanos</td>
-                                <td>contacto@taller.com</td>
-                                <td>15 pedidos</td>
-                                <td><span class="badge bg-primary rounded-pill px-3 py-2">Mayorista</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <div id="formulariosContainer" class="d-none h-100 fade-in">
+                
+                <form id="formReporteGlobal" method="GET" target="_blank" class="h-100">
+                    
+                    <input type="hidden" name="formato" id="formatoHidden" value="pdf">
 
-            <div class="tab-pane fade" id="inventario" role="tabpanel" aria-labelledby="inventario-tab">
-                <div class="table-responsive rounded mt-3">
-                    <table class="table table-hover report-table">
-                        <thead>
-                            <tr>
-                                <th>Pieza / Modelo</th>
-                                <th>Categoría</th>
-                                <th>Stock Actual</th>
-                                <th>Acción Recomendada</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td class="fw-bold">Filtro de Aceite V8</td>
-                                <td>Consumibles</td>
-                                <td class="text-danger fw-bold">2 piezas</td>
-                                <td><span class="badge bg-danger rounded-pill px-3 py-2">Reabastecer urgente</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+                    <div class="card gen-card">
+                        <div class="gen-card-header d-flex align-items-center bg-white border-bottom" style="color: var(--macuin-primary);">
+                            <i class="bi bi-filter-right me-3 fs-5"></i>
+                            <h5 class="mb-0 fw-bold">3. Defina los filtros específicos</h5>
+                        </div>
+                        <div class="gen-card-body d-flex flex-column h-100">
+                            
+                            <div class="flex-grow-1">
+                                <div id="form-ventas" class="reporte-opcion d-none">
+                                    <h6 class="fw-bold text-dark mb-3"><i class="bi bi-calendar-range me-2 text-macuin-primary"></i>Rango de Fechas</h6>
+                                    <div class="row mb-3">
+                                        <div class="col-md-6 mb-2 mb-md-0">
+                                            <label class="form-label fs-8 fw-bold text-muted">Fecha Inicio</label>
+                                            <input type="date" class="form-control" name="fecha_inicio" id="input_fecha_inicio">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fs-8 fw-bold text-muted">Fecha Fin</label>
+                                            <input type="date" class="form-control" name="fecha_fin" id="input_fecha_fin">
+                                        </div>
+                                    </div>
+                                </div>
 
-        </div> </div>
+                                <div id="form-inventario" class="reporte-opcion d-none">
+                                    <h6 class="fw-bold text-dark mb-3"><i class="bi bi-tags me-2 text-macuin-primary"></i>Segmentación</h6>
+                                    <div class="mb-3">
+                                        <label class="form-label fs-8 fw-bold text-muted">Categoría a incluir</label>
+                                        <select class="form-select" name="categoria">
+                                            <option value="todas">Todas las categorías</option>
+                                            {% for cat in categorias %}
+                                                <option value="{{ cat.nombre }}">{{ cat.nombre }}</option>
+                                            {% else %}
+                                                <option value="" disabled>No hay categorías registradas</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div id="form-usuarios" class="reporte-opcion d-none">
+                                    <h6 class="fw-bold text-dark mb-3"><i class="bi bi-person-badge me-2 text-macuin-primary"></i>Tipo de Acceso</h6>
+                                    <div class="mb-3">
+                                        <label class="form-label fs-8 fw-bold text-muted">Rol de Usuario</label>
+                                        <select class="form-select" name="rol">
+                                            <option value="todos">Todos los roles</option>
+                                            <option value="cliente">Solo Clientes</option>
+                                            <option value="admin">Solo Administradores</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div id="form-alertas" class="reporte-opcion d-none">
+                                    <div class="alert alert-danger p-3 fs-7 mb-0 rounded-3 border-0 shadow-sm d-flex align-items-center">
+                                        <i class="bi bi-exclamation-triangle-fill fs-3 me-3"></i>
+                                        <div>
+                                            <strong class="d-block mb-1">Reporte Automatizado</strong>
+                                            No se requieren filtros adicionales para este reporte crítico.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-auto pt-4 border-top">
+                                <button type="submit" class="btn btn-generar btn-lg w-100 fw-bold shadow">
+                                    <i class="bi bi-file-earmark-arrow-down me-2"></i>Generar y Descargar Reporte
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const selectorReporte = document.getElementById('selectorReporte');
+        const selectorFormato = document.getElementById('selectorFormatoGlobal');
+        const formatoHidden = document.getElementById('formatoHidden');
+        
+        const estadoInicial = document.getElementById('estadoInicialFiltros');
+        const contenedorForms = document.getElementById('formulariosContainer');
+        const formGlobal = document.getElementById('formReporteGlobal');
+        const todasLasOpciones = document.querySelectorAll('.reporte-opcion');
+
+        // URL base de Flask para generar reportes (sin el tipo al final)
+        const baseUrl = "{{ url_for('main.generar_reporte', tipo='') }}";
+
+        // 1. Sincronizar el formato elegido en el panel izquierdo con el campo oculto del formulario
+        selectorFormato.addEventListener('change', function() {
+            formatoHidden.value = this.value;
+        });
+
+        // 2. Lógica dinámica al cambiar el tipo de reporte
+        selectorReporte.addEventListener('change', function() {
+            const tipoSeleccionado = this.value;
+
+            // Ocultar estado inicial y mostrar contenedor de filtros
+            estadoInicial.classList.add('d-none');
+            contenedorForms.classList.remove('d-none');
+            
+            // Ocultar todas las opciones de filtros específicas
+            todasLasOpciones.forEach(form => {
+                form.classList.add('d-none');
+            });
+
+            // Resetear validaciones requeridas de fechas
+            document.getElementById('input_fecha_inicio').required = false;
+            document.getElementById('input_fecha_fin').required = false;
+
+            // Configurar el formulario según la selección
+            if(tipoSeleccionado) {
+                // Mostrar los filtros específicos
+                document.getElementById('form-' + tipoSeleccionado).classList.remove('d-none');
+                
+                // Actualizar la URL de acción del formulario dinámicamente
+                formGlobal.action = baseUrl + tipoSeleccionado;
+
+                // Si es ventas, hacer obligatorias las fechas
+                if(tipoSeleccionado === 'ventas') {
+                    document.getElementById('input_fecha_inicio').required = true;
+                    document.getElementById('input_fecha_fin').required = true;
+                }
+            }
+        });
+    });
+</script>
 {% endblock %}

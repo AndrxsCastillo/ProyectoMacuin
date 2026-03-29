@@ -30,16 +30,35 @@ services:
   # Servicio de flask
   flask_admin:
     build: ./flask_admin
-    container_name: flask_admin
+    container_name: macuin_flask_admin
     ports:
       - "5000:5000"
     environment:
       # Aquí conectamos Flask con la API a través de la red interna de Docker
       - API_URL=http://api_central:8000
       - SECRET_KEY=una_clave_super_secreta_para_sesiones
+      - FLASK_DEBUG=1
+    volumes:
+      - ./flask_admin:/app
     depends_on:
       - api_central
     restart: always
+
+  # Servicio de Laravel
+  laravel_cliente:
+    build:
+      context: ./laravel_cliente
+      dockerfile: Dockerfile
+    container_name: macuin_laravel_cliente
+    restart: unless-stopped
+    ports:
+      # CAMBIO: Usaremos el 8080 para no chocar con tu API FastAPI que usa el 8000
+      - "8080:80"
+    volumes:
+      # Sincroniza tu código local con el contenedor para desarrollo en vivo
+      - ./laravel_cliente:/var/www/html
+    depends_on:
+      - db
 
 # Volumen para que los datos de MySQL no se borren si apagamos el contenedor
 volumes:

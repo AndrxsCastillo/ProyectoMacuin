@@ -10,9 +10,9 @@
 
     <style>
         :root {
-            --macuin-primary: #1e3a8a;       /* Azul marino profundo */
-            --macuin-primary-hover: #172554;
-            --macuin-accent: #e6a73a;        /* Naranja dorado de la llave inglesa */
+            --macuin-primary: #1A0A54;       /* Azul marino profundo */
+            --macuin-primary-hover: #13083c;
+            --macuin-accent: #F29D12;        /* Naranja dorado de la llave inglesa */
             --macuin-body-bg: #f3f4f6;       /* Gris muy claro */
         }
 
@@ -89,7 +89,7 @@
     <nav class="navbar navbar-expand-lg macuin-navbar sticky-top">
         <div class="container-fluid px-4">
             
-            <a class="navbar-brand" href="{{ url_for('main.dashboard') }}">
+            <a class="navbar-brand" href="{{ url_for('main.inventario') }}">
                 <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo MACUIN">
                 MACUIN
             </a>
@@ -101,7 +101,7 @@
             <div class="collapse navbar-collapse" id="navbarContent">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-4">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('main.dashboard') }}"><i class="bi bi-box-seam-fill me-1"></i> Inventario</a>
+                        <a class="nav-link" href="{{ url_for('main.inventario') }}"><i class="bi bi-box-seam-fill me-1"></i> Inventario</a>
                     </li>
 
                     <li class="nav-item">

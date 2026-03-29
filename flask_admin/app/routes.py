@@ -1,6 +1,7 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, session
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, session, send_file
 import requests
 from datetime import datetime
+import io
 
 main = Blueprint('main', __name__)
 
@@ -24,7 +25,7 @@ def login():
                 # ¡Magia! Guardamos el token en la sesión del navegador
                 session['token'] = token_info.get('access_token')
                 flash("¡Inicio de sesión exitoso!", "success")
-                return redirect(url_for('main.dashboard'))
+                return redirect(url_for('main.inventario'))
             else:
                 flash("Correo o contraseña incorrectos", "danger")
         except Exception as e:
@@ -38,8 +39,9 @@ def logout():
     flash("Has cerrado sesión.", "info")
     return redirect(url_for('main.login'))
 
-@main.route('/dashboard')
-def dashboard():
+# === CAMBIO: De /dashboard a /inventario ===
+@main.route('/inventario')
+def inventario():
     # Protegemos la ruta: si no hay token, lo regresamos al login
     if 'token' not in session:
         flash("Por favor, inicia sesión para acceder al panel.", "warning")
@@ -48,7 +50,7 @@ def dashboard():
     api_url = current_app.config['API_URL']
     
     try:
-        # Hacemos una petición GET a FastAPI para traer el catálogo (M-07)
+        # Hacemos una petición GET a FastAPI para traer el catálogo
         response = requests.get(f"{api_url}/autopartes/")
         if response.status_code == 200:
             autopartes = response.json()
@@ -59,8 +61,8 @@ def dashboard():
         autopartes = []
         flash(f"Error conectando con la API Central: {str(e)}", "danger")
 
-    # Le pasamos la lista de autopartes al HTML para que las dibuje
-    return render_template('dashboard.html', autopartes=autopartes, now=datetime.now())
+    # === CAMBIO: Ahora carga inventario.html en lugar de dashboard.html ===
+    return render_template('inventario.html', autopartes=autopartes, now=datetime.now())
 
 @main.route('/autopartes/nueva', methods=['GET', 'POST'])
 def nueva_autoparte():
@@ -86,7 +88,7 @@ def nueva_autoparte():
             response = requests.post(f"{api_url}/autopartes/", json=nueva_pieza)
             if response.status_code == 200:
                 flash("¡Autoparte registrada con éxito!", "success")
-                return redirect(url_for('main.dashboard'))
+                return redirect(url_for('main.inventario'))
             else:
                 flash(f"Error de la API: {response.text}", "danger")
         except Exception as e:
@@ -115,16 +117,16 @@ def editar_autoparte(id):
     api_url = current_app.config['API_URL']
 
     if request.method == 'POST':
-        # Recolectamos los datos actualizados del formulario
+        # Recolectamos los datos actualizados del formulario, incluyendo el stock
         pieza_actualizada = {
             "nombre": request.form.get('nombre'),
             "descripcion": request.form.get('descripcion'),
             "categoria_id": int(request.form.get('categoria_id')),
             "marca": request.form.get('marca'),
             "precio": float(request.form.get('precio')),
+            "stock_actual": int(request.form.get('stock_actual') or 0), # NUEVO
+            "stock_minimo": int(request.form.get('stock_minimo') or 0), # NUEVO
             "activo": True
-            # Nota: El stock normalmente se maneja en otra pantalla de "Entradas/Salidas",
-            # así que aquí solo actualizamos la información del catálogo.
         }
         
         try:
@@ -132,8 +134,8 @@ def editar_autoparte(id):
             response = requests.put(f"{api_url}/autopartes/{id}", json=pieza_actualizada)
             
             if response.status_code == 200:
-                flash("¡Autoparte actualizada con éxito!", "success")
-                return redirect(url_for('main.dashboard'))
+                flash("¡Autoparte e inventario actualizados con éxito!", "success")
+                return redirect(url_for('main.inventario'))
             else:
                 flash(f"Error al actualizar: {response.text}", "danger")
         except Exception as e:
@@ -141,13 +143,13 @@ def editar_autoparte(id):
 
     # === LÓGICA GET (Mostrar el formulario pre-llenado) ===
     try:
-        # 1. Pedimos los datos actuales de la pieza
+        # 1. Pedimos los datos actuales de la pieza (y su inventario)
         pieza_response = requests.get(f"{api_url}/autopartes/{id}")
         if pieza_response.status_code == 200:
             pieza_actual = pieza_response.json()
         else:
             flash("No se encontró la autoparte.", "danger")
-            return redirect(url_for('main.dashboard'))
+            return redirect(url_for('main.inventario'))
 
         # 2. Pedimos las categorías para llenar el <select>
         cat_response = requests.get(f"{api_url}/categorias/")
@@ -155,7 +157,7 @@ def editar_autoparte(id):
         
     except Exception as e:
         flash(f"Error de conexión: {str(e)}", "danger")
-        return redirect(url_for('main.dashboard'))
+        return redirect(url_for('main.inventario'))
 
     # Le pasamos la pieza y las categorías al HTML
     return render_template('editar_autoparte.html', pieza=pieza_actual, categorias=categorias)
@@ -180,7 +182,7 @@ def borrar_autoparte(id):
         flash(f"Error de conexión con la API: {str(e)}", "danger")
 
     # Sea cual sea el resultado, regresamos al usuario al dashboard
-    return redirect(url_for('main.dashboard'))
+    return redirect(url_for('main.inventario'))
 
 @main.route('/pedidos')
 def pedidos():
@@ -221,23 +223,6 @@ def cambiar_estatus_pedido(id):
         flash("Error de conexión con el servidor central.", "danger")
         
     return redirect(url_for('main.pedidos'))
-
-@main.route('/reportes')
-def reportes():
-    if 'token' not in session:
-        return redirect(url_for('main.login'))
-        
-    api_url = current_app.config['API_URL']
-    
-    try:
-        # Hacemos la petición GET al nuevo endpoint
-        response = requests.get(f"{api_url}/reportes/")
-        datos_reporte = response.json() if response.status_code == 200 else {}
-    except Exception as e:
-        datos_reporte = {}
-        flash("Error obteniendo los datos de reportes.", "danger")
-        
-    return render_template('reportes.html', datos=datos_reporte)
 
 # ==========================================
 # RUTAS DE GESTIÓN DE USUARIOS
@@ -375,3 +360,103 @@ def editar_usuario(id):
         return redirect(url_for('main.usuarios'))
 
     return render_template('editar_usuario.html', usuario=usuario_actual, roles=roles)
+
+@main.route('/reportes')
+def reportes():
+    if 'token' not in session:
+        return redirect(url_for('main.login'))
+        
+    api_url = current_app.config['API_URL']
+    
+    # Variables iniciales para las métricas superiores
+    ingresos_totales = 0.0
+    total_pedidos = 0
+    alertas_stock = 0
+    
+    # NUEVO: Variable para guardar las categorías
+    lista_categorias = []
+    
+    try:
+        # 1. Calcular Ingresos y Pedidos
+        req_pedidos = requests.get(f"{api_url}/pedidos/")
+        if req_pedidos.status_code == 200:
+            pedidos = req_pedidos.json()
+            total_pedidos = len(pedidos)
+            for pedido in pedidos:
+                if pedido.get('estatus') in ['Recibido', 'Surtido', 'Enviado']:
+                    ingresos_totales += float(pedido.get('total', 0))
+
+        # 2. Alertas de Stock
+        req_autopartes = requests.get(f"{api_url}/autopartes/")
+        if req_autopartes.status_code == 200:
+            autopartes = req_autopartes.json()
+            for pieza in autopartes:
+                stock_actual = int(pieza.get('stock_inicial', 0)) 
+                stock_minimo = int(pieza.get('stock_minimo', 0))
+                if stock_actual <= stock_minimo:
+                    alertas_stock += 1
+                    
+        # 3. NUEVO: Traer las categorías reales para la lista desplegable
+        req_categorias = requests.get(f"{api_url}/categorias/")
+        if req_categorias.status_code == 200:
+            lista_categorias = req_categorias.json()
+
+    except Exception as e:
+        flash(f"Error al calcular métricas en tiempo real: {str(e)}", "danger")
+
+    metricas = {
+        'ingresos': f"{ingresos_totales:,.2f}",
+        'pedidos': total_pedidos,
+        'alertas': alertas_stock
+    }
+
+    # Pasamos las métricas y AHORA TAMBIÉN las categorías a la vista
+    return render_template('reportes.html', metricas=metricas, categorias=lista_categorias)
+
+@main.route('/reportes/generar/<tipo>', methods=['GET'])
+def generar_reporte(tipo):
+    if 'token' not in session:
+        return redirect(url_for('main.login'))
+
+    # 1. Atrapamos los filtros que vienen del formulario HTML
+    formato = request.args.get('formato', 'pdf')
+    filtros = {'formato': formato}
+    
+    if tipo == 'ventas':
+        filtros['fecha_inicio'] = request.args.get('fecha_inicio')
+        filtros['fecha_fin'] = request.args.get('fecha_fin')
+    elif tipo == 'inventario':
+        filtros['categoria'] = request.args.get('categoria')
+    elif tipo == 'usuarios':
+        filtros['rol'] = request.args.get('rol')
+
+    api_url = current_app.config['API_URL']
+    
+    try:
+        # 2. Hacemos la petición a tu FastAPI Central para que construya el archivo
+        response = requests.get(f"{api_url}/reportes/generar/{tipo}", params=filtros)
+        
+        if response.status_code == 200:
+            # 3. Determinamos el tipo de archivo para que el navegador sepa qué descargar
+            mimetypes = {
+                'pdf': 'application/pdf',
+                'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            }
+            
+            # 4. ¡La magia! Tomamos los bytes crudos de la API y forzamos la descarga
+            return send_file(
+                io.BytesIO(response.content),
+                mimetype=mimetypes.get(formato, 'application/octet-stream'),
+                as_attachment=True,
+                download_name=f"macuin_reporte_{tipo}.{formato}"
+            )
+        else:
+            # Si FastAPI marca un error (ej. 404), lo mostramos
+            flash(f"Error de la API: {response.text}", "danger")
+            
+    except Exception as e:
+        flash(f"Error de conexión con el motor de reportes: {str(e)}", "danger")
+
+    # Si algo falla, lo regresamos a la pantalla de reportes
+    return redirect(url_for('main.reportes'))

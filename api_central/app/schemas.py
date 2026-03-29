@@ -90,6 +90,8 @@ class AutoparteUpdate(BaseModel):
     categoria_id: Optional[int] = None
     marca: Optional[str] = None
     precio: Optional[Decimal] = Field(None, ge=0)
+    stock_actual: int
+    stock_minimo: int
     activo: Optional[bool] = None
 
 class Autoparte(AutoparteBase):

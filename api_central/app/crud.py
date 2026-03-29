@@ -106,12 +106,39 @@ def update_autoparte(db: Session, autoparte_id: int, autoparte_data: schemas.Aut
     if not db_autoparte:
         return None
         
+    # Convertimos los datos del esquema a diccionario
     update_data = autoparte_data.dict(exclude_unset=True)
+    
+    # 1. Extraemos y quitamos los datos de inventario para que no rompan el setattr de Autoparte
+    stock_actual = update_data.pop("stock_actual", None)
+    stock_minimo = update_data.pop("stock_minimo", None)
+    
+    # 2. Actualizamos dinámicamente solo los campos que pertenecen a la tabla autopartes
     for key, value in update_data.items():
         setattr(db_autoparte, key, value)
         
+    # 3. Actualizamos o creamos el registro en la tabla inventarios
+    if stock_actual is not None and stock_minimo is not None:
+        # Buscamos si ya tiene un inventario registrado
+        db_inventario = db.query(models.Inventario).filter(models.Inventario.autoparte_id == autoparte_id).first()
+        
+        if db_inventario:
+            # Si existe, lo actualizamos
+            db_inventario.stock_actual = stock_actual
+            db_inventario.stock_minimo = stock_minimo
+        else:
+            # Si no existe (porque lo insertaste manual y se te pasó), lo creamos
+            nuevo_inventario = models.Inventario(
+                autoparte_id=autoparte_id,
+                stock_actual=stock_actual,
+                stock_minimo=stock_minimo
+            )
+            db.add(nuevo_inventario)
+            
+    # 4. Guardamos todos los cambios (autopartes e inventarios) al mismo tiempo
     db.commit()
     db.refresh(db_autoparte)
+    
     return db_autoparte
 
 def delete_autoparte(db: Session, autoparte_id: int):
