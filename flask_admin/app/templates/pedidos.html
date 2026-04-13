@@ -58,7 +58,6 @@
     .bg-soft-success { background-color: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
     .bg-soft-info { background-color: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
 
-    /* Estilos para el formulario de cambio de estado en la fila */
     .status-select {
         border: 1px solid #d1d5db;
         border-radius: 0.4rem;
@@ -92,6 +91,19 @@
         background-color: var(--macuin-primary-hover, #172554);
         color: white;
     }
+    
+    /* MODIFICACIÓN: Estilos específicos para hacer los modales más limpios */
+    .modal-confirm-header {
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #e5e7eb;
+        padding: 1rem 1.5rem;
+    }
+    
+    .modal-confirm-icon {
+        font-size: 1.5rem;
+        color: var(--macuin-primary);
+        margin-right: 0.75rem;
+    }
 </style>
 
 <div class="container-fluid pt-3">
@@ -100,7 +112,7 @@
             <h2 class="fw-bold mb-0 text-dark">Tablero Global de Pedidos</h2>
             <p class="text-muted fs-7 mb-0">Gestión y seguimiento de órdenes de compra.</p>
         </div>
-        </div>
+    </div>
 
     <div class="card content-card">
         <div class="card-body p-4">
@@ -109,11 +121,11 @@
                 <table class="table table-hover table-striped dashboard-table align-middle">
                     <thead>
                         <tr>
-                            <th class="ps-4"># Pedido</th>
-                            <th>Fecha</th>
-                            <th>Total</th>
-                            <th>Estatus Actual</th>
-                            <th>Acción (Cambiar Estatus)</th>
+                            <th class="ps-4" style="width: 12%;"># Pedido</th>
+                            <th style="width: 22%;">Fecha</th>
+                            <th style="width: 13%;">Total</th>
+                            <th style="width: 18%;">Estatus Actual</th>
+                            <th style="width: 35%;">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -122,30 +134,47 @@
                             <td class="ps-4 fw-bold text-muted">ORD-{{ pedido.id }}</td>
                             <td>
                                 <i class="bi bi-calendar3 text-muted me-2" style="font-size: 0.8rem;"></i>
-                                <span class="fw-medium text-dark">{{ pedido.fecha_pedido.split('.')[0].replace('T', ' ') }}</span>
+                                <span class="fw-medium text-dark">
+                                    {% if pedido.fecha_pedido %}
+                                        {{ pedido.fecha_pedido.split('.')[0].replace('T', ' ') }}
+                                    {% else %}
+                                        <span class="text-muted fw-normal">Fecha no registrada</span>
+                                    {% endif %}
+                                </span>
                             </td>
-                            <td class="text-success fw-bold">${{ pedido.total }}</td>
+                            <td class="text-success fw-bold">${{ "%.2f"|format(pedido.total) }}</td>
                             <td>
-                                {% if pedido.estatus == 'Recibido' %}
-                                    <span class="badge badge-modern bg-soft-secondary"><i class="bi bi-inbox me-1"></i>Recibido</span>
+                                {% if pedido.estatus == 'PENDIENTE' %}
+                                    <span class="badge badge-modern bg-soft-secondary"><i class="bi bi-inbox me-1"></i>Pendiente</span>
+                                {% elif pedido.estatus == 'Recibido' %}
+                                    <span class="badge badge-modern bg-soft-info"><i class="bi bi-check2-circle me-1"></i>Recibido</span>
                                 {% elif pedido.estatus == 'Surtido' %}
                                     <span class="badge badge-modern bg-soft-warning"><i class="bi bi-box-seam me-1"></i>Surtido</span>
                                 {% elif pedido.estatus == 'Enviado' %}
                                     <span class="badge badge-modern bg-soft-success"><i class="bi bi-truck me-1"></i>Enviado</span>
                                 {% else %}
-                                    <span class="badge badge-modern bg-soft-info">{{ pedido.estatus }}</span>
+                                    <span class="badge badge-modern bg-soft-secondary">{{ pedido.estatus }}</span>
                                 {% endif %}
                             </td>
                             <td>
-                                <form action="{{ url_for('main.cambiar_estatus_pedido', id=pedido.id) }}" method="POST" class="d-flex gap-2 align-items-center mb-0">
-                                    <select name="estatus" class="form-select status-select" required style="width: 140px;">
-                                        <option value="" disabled selected>Seleccionar...</option>
-                                        <option value="Recibido">Recibido</option>
-                                        <option value="Surtido">Surtido</option>
-                                        <option value="Enviado">Enviado</option>
-                                    </select>
-                                    <button type="submit" class="btn btn-actualizar">Guardar</button>
-                                </form>
+                                <div class="d-flex gap-2 align-items-center">
+                                    <form action="{{ url_for('main.cambiar_estatus_pedido', id=pedido.id) }}" method="POST" class="d-flex gap-2 align-items-center mb-0 form-cambio-estatus">
+                                        <select name="estatus" class="form-select status-select input-estatus" data-original="{{ pedido.estatus }}" required style="width: 150px;">
+                                            {% if pedido.estatus == 'PENDIENTE' %}
+                                            <option value="" disabled selected>— Sin procesar —</option>
+                                            {% endif %}
+                                            <option value="Recibido" {% if pedido.estatus == 'Recibido' %}selected{% endif %}>Recibido</option>
+                                            <option value="Surtido" {% if pedido.estatus == 'Surtido' %}selected{% endif %}>Surtido</option>
+                                            <option value="Enviado" {% if pedido.estatus == 'Enviado' %}selected{% endif %}>Enviado</option>
+                                        </select>
+                                        <button type="submit" class="btn btn-actualizar">Guardar</button>
+                                    </form>
+                                    
+                                    <button type="button" class="btn btn-sm py-1 macuin-btn-detalle" 
+                                            data-url="{{ url_for('main.detalle_pedido', id=pedido.id) }}">
+                                        <i class="bi bi-eye"></i> Detalles
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                         {% else %}
@@ -164,4 +193,172 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="detallePedidoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white border-0">
+                <h5 class="modal-title fw-bold"><i class="bi bi-receipt me-2"></i>Detalle del Pedido</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4" id="modalDetalleContenido">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalConfirmacion" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header modal-confirm-header d-flex align-items-center">
+                <i class="bi bi-exclamation-triangle-fill modal-confirm-icon text-warning"></i>
+                <h5 class="modal-title fw-bold text-dark mb-0">Confirmar Actualización</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="text-dark fs-6 mb-0" id="confirmacionMensaje"></p>
+            </div>
+            <div class="modal-footer bg-light border-top-0">
+                <button type="button" class="btn btn-secondary fw-bold px-4" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary fw-bold px-4 shadow-sm" id="btnConfirmarAccion">Sí, actualizar estatus</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalAlerta" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header modal-confirm-header d-flex align-items-center">
+                <i class="bi bi-info-circle-fill modal-confirm-icon text-info"></i>
+                <h5 class="modal-title fw-bold text-dark mb-0">Aviso del Sistema</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="text-dark fs-6 mb-0" id="alertaMensaje"></p>
+            </div>
+            <div class="modal-footer bg-light border-top-0">
+                <button type="button" class="btn btn-primary fw-bold px-4" data-bs-dismiss="modal">Entendido</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("1. SCRIPT INICIADO.");
+
+    // === LÓGICA ORIGINAL DEL MODAL DE DETALLES ===
+    const botonesDetalle = document.querySelectorAll('.macuin-btn-detalle');
+    const modalEl = document.getElementById('detallePedidoModal');
+    const modalContenido = document.getElementById('modalDetalleContenido');
+
+    function intentarInicializar() {
+        if (typeof bootstrap !== 'undefined') {
+            const detalleModal = new bootstrap.Modal(modalEl);
+            
+            botonesDetalle.forEach(boton => {
+                boton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const url = this.getAttribute('data-url');
+                    
+                    detalleModal.show();
+                    modalContenido.innerHTML = `
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <p class="mt-3 text-muted fw-bold">Cargando detalles...</p>
+                        </div>`;
+
+                    fetch(url)
+                        .then(response => {
+                            if (!response.ok) throw new Error(`Error ${response.status}`);
+                            return response.text();
+                        })
+                        .then(html => {
+                            modalContenido.innerHTML = html;
+                        })
+                        .catch(error => {
+                            modalContenido.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+                        });
+                });
+            });
+        } else {
+            setTimeout(intentarInicializar, 100); 
+        }
+    }
+
+    intentarInicializar();
+
+
+    // === NUEVA LÓGICA DE MODALES BONITOS PARA ESTATUS ===
+    let modalConfirmacionUI = null;
+    let modalAlertaUI = null;
+    
+    // Variables temporales para recordar qué pedido se estaba editando
+    let formEnProceso = null;
+    let selectEnProceso = null;
+    let valorOriginalGuardado = null;
+
+    const formsEstatus = document.querySelectorAll('.form-cambio-estatus');
+
+    formsEstatus.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const selectEstatus = this.querySelector('.input-estatus');
+            const valorOriginal = selectEstatus.getAttribute('data-original');
+            const valorNuevo = selectEstatus.value;
+
+            // Si no seleccionó un estado válido (sigue en "Sin procesar")
+            if (!valorNuevo) {
+                document.getElementById('alertaMensaje').innerHTML = `Selecciona un estado para actualizar el pedido.`;
+                if (!modalAlertaUI) modalAlertaUI = new bootstrap.Modal(document.getElementById('modalAlerta'));
+                modalAlertaUI.show();
+                return;
+            }
+
+            // Regla 1: Si no cambió nada, mostramos el modal de aviso
+            if (valorOriginal === valorNuevo) {
+                document.getElementById('alertaMensaje').innerHTML = `El pedido ya está marcado como <b>"${valorOriginal}"</b>. No es necesario guardar cambios.`;
+                if (!modalAlertaUI) modalAlertaUI = new bootstrap.Modal(document.getElementById('modalAlerta'));
+                modalAlertaUI.show();
+                return;
+            }
+
+            // Regla 2: Si cambió, guardamos el form en memoria y mostramos la ventanita de confirmación
+            formEnProceso = this;
+            selectEnProceso = selectEstatus;
+            valorOriginalGuardado = valorOriginal;
+
+            const desdeLabel = valorOriginal === 'PENDIENTE' ? 'Pendiente' : valorOriginal;
+            document.getElementById('confirmacionMensaje').innerHTML = `Vas a cambiar el estatus de este pedido de <b>"${desdeLabel}"</b> a <b>"${valorNuevo}"</b>.<br><br>¿Deseas continuar con esta acción?`;
+            if (!modalConfirmacionUI) modalConfirmacionUI = new bootstrap.Modal(document.getElementById('modalConfirmacion'));
+            modalConfirmacionUI.show();
+        });
+    });
+
+    // Acción del botón "Sí, actualizar estatus"
+    document.getElementById('btnConfirmarAccion').addEventListener('click', function() {
+        if (formEnProceso) {
+            formEnProceso.submit(); // Si acepta, le damos luz verde al formulario para ir a FastAPI
+        }
+    });
+
+    // Acción si el usuario cierra el modal de confirmación (Botón cancelar, la "X" o click afuera)
+    document.getElementById('modalConfirmacion').addEventListener('hidden.bs.modal', function () {
+        if (selectEnProceso && valorOriginalGuardado) {
+            // Si el estado original es PENDIENTE, restauramos la opción deshabilitada vacía
+            if (valorOriginalGuardado === 'PENDIENTE') {
+                selectEnProceso.value = '';
+            } else {
+                selectEnProceso.value = valorOriginalGuardado;
+            }
+        }
+        formEnProceso = null;
+        selectEnProceso = null;
+    });
+});
+</script>
 {% endblock %}

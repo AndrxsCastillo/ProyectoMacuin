@@ -16,7 +16,10 @@
         border: 1px solid #e5e7eb;
     }
 
-    .dashboard-table { margin-bottom: 0; }
+    .dashboard-table { 
+        margin-bottom: 0; 
+        width: 100%;
+    }
 
     .dashboard-table thead th {
         border: none;
@@ -87,6 +90,19 @@
     }
 
     .btn-borrar:hover { background-color: #fecaca; }
+
+    /* Estilos para el Modal de Borrado */
+    .modal-danger-header {
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #fee2e2;
+        padding: 1rem 1.5rem;
+    }
+    
+    .modal-danger-icon {
+        font-size: 1.5rem;
+        color: #dc2626;
+        margin-right: 0.75rem;
+    }
 </style>
 
 <div class="container-fluid pt-3">
@@ -107,30 +123,54 @@
                 <table class="table table-hover table-striped dashboard-table">
                     <thead>
                         <tr>
-                            <th class="ps-4">ID</th>
-                            <th>Nombre / Descripción</th>
-                            <th>Marca</th>
-                            <th>Precio</th>
-                            <th class="text-center">Acciones</th>
+                            <th class="ps-4" style="width: 8%;">#</th>
+                            <th style="width: 32%;">Nombre / Descripción</th>
+                            <th style="width: 15%;">Categoría</th>
+                            <th style="width: 12%;">Marca</th>
+                            <th class="text-center" style="width: 10%;">Stock</th> 
+                            <th style="width: 10%;">Precio</th>
+                            <th class="text-center" style="width: 13%;">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for pieza in autopartes %}
                         <tr>
-                            <td class="ps-4 fw-bold text-muted">#{{ pieza.id }}</td>
+                            <td class="ps-4 fw-bold text-muted">{{ loop.index }}</td>
                             <td>
                                 <strong class="text-dark">{{ pieza.nombre }}</strong><br>
                                 <span class="text-muted" style="font-size: 0.85rem;">{{ pieza.descripcion }}</span>
                             </td>
+                            <td>
+                                <span class="badge bg-secondary rounded-pill fw-bold">
+                                    {{ pieza.categoria_nombre }}
+                                </span>
+                            </td>
                             <td><span class="badge bg-secondary rounded-pill fw-bold">{{ pieza.marca }}</span></td>
-                            <td class="text-success fw-bold">${{ pieza.precio }}</td>
+                            
+                            <td class="text-center align-middle">
+                                {% if pieza.stock_actual is not none %}
+                                    {% if pieza.stock_actual <= 5 %}
+                                        <div class="d-flex align-items-center justify-content-center text-danger fw-bold" title="Stock bajo o crítico">
+                                            <i class="bi bi-exclamation-triangle-fill fs-5 me-2"></i> {{ pieza.stock_actual }}
+                                        </div>
+                                    {% else %}
+                                        <div class="fw-bold text-dark">
+                                            {{ pieza.stock_actual }}
+                                        </div>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted fs-8">Sin info</span>
+                                {% endif %}
+                            </td>
+
+                            <td class="text-success fw-bold">${{ "%.2f"|format(pieza.precio) }}</td>
                             <td class="text-center">
                                 <div class="d-flex justify-content-center gap-2">
                                     <a href="{{ url_for('main.editar_autoparte', id=pieza.id) }}" class="btn btn-editar">
                                         Editar
                                     </a>
-                                    <form action="{{ url_for('main.borrar_autoparte', id=pieza.id) }}" method="POST" class="d-inline">
-                                        <button type="submit" class="btn btn-borrar" onclick="return confirm('¿Seguro que deseas eliminar esta Autoparte? Esta acción no se puede deshacer.')">
+                                    <form action="{{ url_for('main.borrar_autoparte', id=pieza.id) }}" method="POST" class="d-inline form-borrar">
+                                        <button type="submit" class="btn btn-borrar" data-nombre="{{ pieza.nombre }}">
                                             Borrar
                                         </button>
                                     </form>
@@ -139,7 +179,7 @@
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="5" class="text-center py-5">
+                            <td colspan="7" class="text-center py-5">
                                 <i class="bi bi-box-seam text-muted" style="font-size: 2.5rem;"></i><br>
                                 <span class="text-muted fw-bold mt-2 d-block">No hay autopartes registradas</span>
                                 <small class="text-muted">Haz clic en "Nueva Autoparte" para comenzar.</small>
@@ -153,4 +193,71 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="modalBorrar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header modal-danger-header d-flex align-items-center">
+                <i class="bi bi-trash3-fill modal-danger-icon"></i>
+                <h5 class="modal-title fw-bold text-dark mb-0">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="text-dark fs-6 mb-0" id="mensajeBorrar"></p>
+                <div class="alert alert-danger mt-3 mb-0 fs-7 border-0">
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i>Esta acción no se puede deshacer y eliminará el registro permanentemente.
+                </div>
+            </div>
+            <div class="modal-footer bg-light border-top-0">
+                <button type="button" class="btn btn-secondary fw-bold px-4" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger fw-bold px-4 shadow-sm" id="btnConfirmarBorrado">Sí, eliminar pieza</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    
+    let formParaBorrar = null;
+    let modalBorrarUI = null;
+
+    const formsBorrar = document.querySelectorAll('.form-borrar');
+
+    formsBorrar.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault(); // Detenemos el envío automático
+            
+            // Atrapamos el formulario actual y el nombre de la pieza
+            formParaBorrar = this;
+            const boton = this.querySelector('.btn-borrar');
+            const nombrePieza = boton.getAttribute('data-nombre');
+
+            // Actualizamos el texto del modal
+            document.getElementById('mensajeBorrar').innerHTML = `Estás a punto de eliminar la autoparte: <br><strong class="fs-5 text-danger">${nombrePieza}</strong>`;
+            
+            // Levantamos el modal
+            if (!modalBorrarUI) {
+                modalBorrarUI = new bootstrap.Modal(document.getElementById('modalBorrar'));
+            }
+            modalBorrarUI.show();
+        });
+    });
+
+    // Acción del botón rojo "Sí, eliminar pieza"
+    document.getElementById('btnConfirmarBorrado').addEventListener('click', function() {
+        if (formParaBorrar) {
+            formParaBorrar.submit(); // Si acepta, el formulario se va a FastAPI
+        }
+    });
+
+    // Limpiamos la memoria si cierra el modal
+    document.getElementById('modalBorrar').addEventListener('hidden.bs.modal', function () {
+        formParaBorrar = null;
+    });
+
+});
+</script>
 {% endblock %}

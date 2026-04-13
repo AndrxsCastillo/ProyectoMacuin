@@ -18,7 +18,7 @@ pyasn1==0.6.2
 pycparser==3.0
 pydantic==2.12.5
 pydantic_core==2.41.5
-PyMySQL==1.1.2
+psycopg2-binary
 python-dotenv==1.2.2
 python-jose==3.5.0
 python-multipart==0.0.22
@@ -29,7 +29,7 @@ starlette==0.52.1
 typing-inspection==0.4.2
 typing_extensions==4.15.0
 uvicorn==0.41.0
-bcrypt
 fpdf2
 openpyxl
 python-docx
+watchfiles

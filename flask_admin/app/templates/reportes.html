@@ -193,7 +193,7 @@
                             <div class="flex-grow-1">
                                 <div id="form-ventas" class="reporte-opcion d-none">
                                     <h6 class="fw-bold text-dark mb-3"><i class="bi bi-calendar-range me-2 text-macuin-primary"></i>Rango de Fechas</h6>
-                                    <div class="row mb-3">
+                                    <div class="row mb-1">
                                         <div class="col-md-6 mb-2 mb-md-0">
                                             <label class="form-label fs-8 fw-bold text-muted">Fecha Inicio</label>
                                             <input type="date" class="form-control" name="fecha_inicio" id="input_fecha_inicio">
@@ -202,6 +202,9 @@
                                             <label class="form-label fs-8 fw-bold text-muted">Fecha Fin</label>
                                             <input type="date" class="form-control" name="fecha_fin" id="input_fecha_fin">
                                         </div>
+                                    </div>
+                                    <div id="error_fechas" class="text-danger fs-8 mt-2 d-none fw-bold">
+                                        <i class="bi bi-x-circle-fill me-1"></i><span id="texto_error_fechas"></span>
                                     </div>
                                 </div>
 
@@ -267,11 +270,17 @@
         const contenedorForms = document.getElementById('formulariosContainer');
         const formGlobal = document.getElementById('formReporteGlobal');
         const todasLasOpciones = document.querySelectorAll('.reporte-opcion');
+        
+        // Elementos para validación de fechas
+        const inputFechaInicio = document.getElementById('input_fecha_inicio');
+        const inputFechaFin = document.getElementById('input_fecha_fin');
+        const divErrorFechas = document.getElementById('error_fechas');
+        const textoErrorFechas = document.getElementById('texto_error_fechas');
 
         // URL base de Flask para generar reportes (sin el tipo al final)
         const baseUrl = "{{ url_for('main.generar_reporte', tipo='') }}";
 
-        // 1. Sincronizar el formato elegido en el panel izquierdo con el campo oculto del formulario
+        // 1. Sincronizar el formato elegido
         selectorFormato.addEventListener('change', function() {
             formatoHidden.value = this.value;
         });
@@ -280,31 +289,60 @@
         selectorReporte.addEventListener('change', function() {
             const tipoSeleccionado = this.value;
 
-            // Ocultar estado inicial y mostrar contenedor de filtros
             estadoInicial.classList.add('d-none');
             contenedorForms.classList.remove('d-none');
             
-            // Ocultar todas las opciones de filtros específicas
             todasLasOpciones.forEach(form => {
                 form.classList.add('d-none');
             });
 
-            // Resetear validaciones requeridas de fechas
-            document.getElementById('input_fecha_inicio').required = false;
-            document.getElementById('input_fecha_fin').required = false;
+            inputFechaInicio.required = false;
+            inputFechaFin.required = false;
+            divErrorFechas.classList.add('d-none'); // Limpiar error al cambiar pestaña
 
-            // Configurar el formulario según la selección
             if(tipoSeleccionado) {
-                // Mostrar los filtros específicos
                 document.getElementById('form-' + tipoSeleccionado).classList.remove('d-none');
-                
-                // Actualizar la URL de acción del formulario dinámicamente
                 formGlobal.action = baseUrl + tipoSeleccionado;
 
-                // Si es ventas, hacer obligatorias las fechas
                 if(tipoSeleccionado === 'ventas') {
-                    document.getElementById('input_fecha_inicio').required = true;
-                    document.getElementById('input_fecha_fin').required = true;
+                    inputFechaInicio.required = true;
+                    inputFechaFin.required = true;
+                }
+            }
+        });
+
+        // 3. NUEVO: Validación estricta de fechas al intentar enviar el formulario
+        formGlobal.addEventListener('submit', function(e) {
+            const tipoSeleccionado = selectorReporte.value;
+
+            if (tipoSeleccionado === 'ventas') {
+                const fechaInicio = inputFechaInicio.value;
+                const fechaFin = inputFechaFin.value;
+
+                // Calculamos la fecha de hoy en el formato exacto de HTML (YYYY-MM-DD)
+                const hoy = new Date();
+                const year = hoy.getFullYear();
+                const month = String(hoy.getMonth() + 1).padStart(2, '0');
+                const day = String(hoy.getDate()).padStart(2, '0');
+                const hoyStr = `${year}-${month}-${day}`;
+
+                // Escondemos errores previos por defecto
+                divErrorFechas.classList.add('d-none');
+
+                // Verificamos Regla 1: Inicio no puede ser mayor que Fin
+                if (fechaInicio > fechaFin) {
+                    e.preventDefault(); // Detenemos la descarga
+                    textoErrorFechas.textContent = "La fecha de inicio no puede ser mayor a la fecha de fin.";
+                    divErrorFechas.classList.remove('d-none');
+                    return;
+                }
+
+                // Verificamos Regla 2: Fin no puede ser mayor a la fecha actual
+                if (fechaFin > hoyStr) {
+                    e.preventDefault(); // Detenemos la descarga
+                    textoErrorFechas.textContent = "La fecha de fin no puede ser mayor a la fecha actual.";
+                    divErrorFechas.classList.remove('d-none');
+                    return;
                 }
             }
         });

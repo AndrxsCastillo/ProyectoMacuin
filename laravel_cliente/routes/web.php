@@ -1,23 +1,36 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ShopController;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\OrderController;
 
-/* HOME → CATÁLOGO */
+/* ── RAÍZ ──────────────────────────────────────────────── */
 Route::get('/', fn() => redirect()->route('catalog'));
 
-/* AUTH */
-Route::view('/login', 'auth.login')->name('login');
-Route::view('/registro', 'auth.register')->name('register');
+/* ── AUTENTICACIÓN ─────────────────────────────────────── */
+Route::get('/login',    [AuthController::class, 'showLogin'])->name('login');
+Route::post('/login',   [AuthController::class, 'login'])->name('login.post');
 
-/* CERRAR SESIÓN → LOGIN */
-Route::get('/logout', function () {
-    return redirect()->route('login');
-})->name('logout');
+Route::get('/registro',  [AuthController::class, 'showRegister'])->name('register');
+Route::post('/registro', [AuthController::class, 'register'])->name('register.post');
 
-/* TIENDA */
-Route::view('/catalogo', 'shop.catalog')->name('catalog');
-Route::view('/carrito', 'shop.cart')->name('cart');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-/* PEDIDOS */
-Route::view('/mis-pedidos', 'orders.index')->name('orders.index');
-Route::view('/mis-pedidos/detalle', 'orders.show')->name('orders.show');
+/* ── TIENDA (pública) ──────────────────────────────────── */
+Route::get('/catalogo', [ShopController::class, 'catalog'])->name('catalog');
+
+/* ── CARRITO (accesible sin login, checkout requiere login) */
+Route::get('/carrito',           [CartController::class,  'show'])->name('cart');
+Route::post('/carrito/agregar',  [CartController::class,  'add'])->name('cart.add');
+Route::post('/carrito/actualizar',[CartController::class, 'update'])->name('cart.update');
+Route::post('/carrito/eliminar', [CartController::class,  'remove'])->name('cart.remove');
+
+/* ── RUTAS QUE REQUIEREN SESIÓN ACTIVA ─────────────────── */
+Route::middleware('auth.client')->group(function () {
+    Route::post('/carrito/confirmar', [OrderController::class, 'store'])->name('order.store');
+
+    Route::get('/mis-pedidos',            [OrderController::class, 'index'])->name('orders.index');
+    Route::get('/mis-pedidos/{id}',       [OrderController::class, 'show'])->name('orders.show');
+});

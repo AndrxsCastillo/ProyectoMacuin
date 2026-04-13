@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+*.egg-info/
+.eggs/
+dist/
+build/
+.pytest_cache/
+
+# Entornos virtuales
+venv/
+env/
+.env
+.venv
+
+# Carpetas duplicadas del proyecto
+Proyecto Macuin/
+ProyectoMacuin/
+
+# Archivos de herramientas locales
+api_central/tools/
+api_central/test_api.db
+
+# Laravel
+laravel_cliente/vendor/
+laravel_cliente/.env
+laravel_cliente/node_modules/
+laravel_cliente/storage/framework/cache/
+laravel_cliente/storage/framework/sessions/
+laravel_cliente/storage/framework/views/
+laravel_cliente/storage/logs/
+
+# IDE
+.vscode/
+.idea/
+*.swp

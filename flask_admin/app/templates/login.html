@@ -6,10 +6,16 @@
     <title>Iniciar Sesión - MACUIN</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
     <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
-    
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <style>
+        /* Animación para que la alerta desaparezca suavemente */
+        .fade-out {
+            opacity: 0;
+            transition: opacity 0.5s ease-out;
+        }
+    </style>
 </head>
 <body class="login-body">
 
@@ -28,12 +34,17 @@
                         
                         {% with messages = get_flashed_messages(with_categories=true) %}
                             {% if messages %}
-                                {% for category, message in messages %}
-                                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                                        <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ message }}
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                    </div>
-                                {% endfor %}
+                                <div id="flash-messages-container" class="mb-4">
+                                    {% for category, message in messages %}
+                                        <div class="alert alert-{{ 'success' if category == 'message' else category }} alert-dismissible fade show shadow-sm border-0 auto-dismiss-alert" role="alert">
+                                            {% if category == 'success' or category == 'message' %}<i class="bi bi-check-circle-fill me-2"></i>{% endif %}
+                                            {% if category == 'danger' %}<i class="bi bi-exclamation-triangle-fill me-2"></i>{% endif %}
+                                            {% if category == 'warning' %}<i class="bi bi-exclamation-circle-fill me-2"></i>{% endif %}
+                                            {{ message }}
+                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                        </div>
+                                    {% endfor %}
+                                </div>
                             {% endif %}
                         {% endwith %}
 
@@ -79,6 +90,30 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- LÓGICA DE AUTO-CIERRE DE ALERTAS (Igualita a la de base.html) ---
+            const alertas = document.querySelectorAll('.auto-dismiss-alert');
+            
+            alertas.forEach(function(alerta) {
+                // Configuramos un temporizador de 5 segundos (5000 ms)
+                setTimeout(function() {
+                    alerta.classList.add('fade-out');
+                    
+                    // Esperamos a que termine la animación y luego la eliminamos del DOM
+                    setTimeout(function() {
+                        if (typeof bootstrap !== 'undefined') {
+                            const alertInstance = new bootstrap.Alert(alerta);
+                            alertInstance.close();
+                        } else {
+                            alerta.remove(); // Plan B por si bootstrap tarda
+                        }
+                    }, 500); 
+                }, 5000); 
+            });
+        });
+    </script>
 </body>
 </html>

@@ -20,14 +20,31 @@ def login():
         
         try:
             response = requests.post(f"{api_url}/token", data=login_data)
+            
             if response.status_code == 200:
                 token_info = response.json()
-                # ¡Magia! Guardamos el token en la sesión del navegador
+                
+                # --- DEBUG PARA LA TERMINAL ---
+                print("\n=== RESPUESTA DE FASTAPI ===")
+                print(token_info) 
+                print("============================\n")
+                
+                # Guardamos el token y el nombre en la sesión
                 session['token'] = token_info.get('access_token')
+                session['usuario'] = token_info.get('nombre', 'Administrador')
+                
                 flash("¡Inicio de sesión exitoso!", "success")
                 return redirect(url_for('main.inventario'))
             else:
-                flash("Correo o contraseña incorrectos", "danger")
+                # Extraemos el mensaje de error de FastAPI (Ej. "Acceso denegado...")
+                try:
+                    error_data = response.json()
+                    mensaje_error = error_data.get("detail", "Correo o contraseña incorrectos")
+                except ValueError:
+                    mensaje_error = "Error desconocido de autenticación."
+                
+                flash(mensaje_error, "danger")
+                
         except Exception as e:
             flash(f"Error de conexión con la API: {str(e)}", "danger")
 
@@ -35,8 +52,9 @@ def login():
 
 @main.route('/logout')
 def logout():
-    session.pop('token', None) # Borramos el token al salir
-    flash("Has cerrado sesión.", "info")
+    # ¡NUEVO! Limpiamos TODA la sesión por completo, no solo el token
+    session.clear() 
+    flash("Has cerrado sesión correctamente.", "info")
     return redirect(url_for('main.login'))
 
 # === CAMBIO: De /dashboard a /inventario ===
@@ -191,9 +209,15 @@ def pedidos():
         
     api_url = current_app.config['API_URL']
     try:
-        # Pedimos la lista global de pedidos a FastAPI
         response = requests.get(f"{api_url}/pedidos/")
-        lista_pedidos = response.json() if response.status_code == 200 else []
+        
+        if response.status_code == 200:
+            lista_pedidos = response.json()
+        else:
+            # ¡NUEVO! Si la API falla, ahora Flask te avisará en pantalla
+            lista_pedidos = []
+            flash(f"Error interno de la API (Status {response.status_code}): {response.text}", "danger")
+            
     except Exception as e:
         lista_pedidos = []
         flash(f"Error conectando con la API: {str(e)}", "danger")
@@ -223,6 +247,24 @@ def cambiar_estatus_pedido(id):
         flash("Error de conexión con el servidor central.", "danger")
         
     return redirect(url_for('main.pedidos'))
+
+@main.route('/pedidos/detalle/<int:id>', methods=['GET'])
+def detalle_pedido(id):
+    if 'token' not in session:
+        return {"error": "No autorizado"}, 401
+        
+    api_url = current_app.config['API_URL']
+    
+    try:
+        response = requests.get(f"{api_url}/pedidos/{id}")
+        if response.status_code == 200:
+            pedido = response.json()
+            # Devolvemos un pedazo de HTML que inyectaremos en el modal
+            return render_template('partials/detalle_pedido_modal.html', pedido=pedido)
+        else:
+            return f"<div class='alert alert-danger'>Error: {response.text}</div>", 400
+    except Exception as e:
+        return f"<div class='alert alert-danger'>Error de conexión: {str(e)}</div>", 500
 
 # ==========================================
 # RUTAS DE GESTIÓN DE USUARIOS
@@ -391,8 +433,14 @@ def reportes():
         if req_autopartes.status_code == 200:
             autopartes = req_autopartes.json()
             for pieza in autopartes:
-                stock_actual = int(pieza.get('stock_inicial', 0)) 
+                # CORRECCIÓN VITAL: Ahora leemos 'stock_actual', no 'stock_inicial'
+                stock_actual = int(pieza.get('stock_actual', 0)) 
                 stock_minimo = int(pieza.get('stock_minimo', 0))
+                
+                # Imprimimos en la consola de Flask para auditar qué está comparando
+                print(f"Auditoría de Stock - Pieza: {pieza.get('nombre')} | Actual: {stock_actual} | Mínimo: {stock_minimo}")
+                
+                # Modificamos la lógica: SOLO alerta si el actual es estrictamente MENOR al mínimo
                 if stock_actual <= stock_minimo:
                     alertas_stock += 1
                     
@@ -433,8 +481,8 @@ def generar_reporte(tipo):
     api_url = current_app.config['API_URL']
     
     try:
-        # 2. Hacemos la petición a tu FastAPI Central para que construya el archivo
-        response = requests.get(f"{api_url}/reportes/generar/{tipo}", params=filtros)
+        # 2. Hacemos la petición al endpoint dedicado de cada tipo de reporte
+        response = requests.get(f"{api_url}/reportes/{tipo}", params=filtros)
         
         if response.status_code == 200:
             # 3. Determinamos el tipo de archivo para que el navegador sepa qué descargar

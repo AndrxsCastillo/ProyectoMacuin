@@ -1,0 +1,42 @@
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h6 class="text-muted fw-bold mb-1">Pedido #</h6>
+        <p class="fs-5 fw-bold text-dark">ORD-{{ pedido.id }}</p>
+    </div>
+    <div class="col-md-6 text-md-end">
+        <h6 class="text-muted fw-bold mb-1">Fecha</h6>
+        <p class="fs-6 text-dark">{{ pedido.fecha_pedido.split('.')[0].replace('T', ' ') if pedido.fecha_pedido else 'N/A' }}</p>
+    </div>
+</div>
+
+<h6 class="fw-bold text-primary mb-3"><i class="bi bi-box-seam me-2"></i>Artículos Incluidos</h6>
+<div class="table-responsive">
+    <table class="table table-bordered table-sm align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Pieza</th>
+                <th>Marca</th>
+                <th class="text-center">Cant.</th>
+                <th class="text-end">Precio U.</th>
+                <th class="text-end fw-bold">Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in pedido.detalles %}
+            <tr>
+                <td>{{ item.pieza_nombre }}</td>
+                <td>{{ item.marca }}</td>
+                <td class="text-center">{{ item.cantidad }}</td>
+                <td class="text-end">${{ "%.2f"|format(item.precio_unitario) }}</td>
+                <td class="text-end fw-bold text-success">${{ "%.2f"|format(item.subtotal) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot class="table-light">
+            <tr>
+                <td colspan="4" class="text-end fw-bold fs-6">TOTAL DEL PEDIDO:</td>
+                <td class="text-end fw-bold fs-5 text-primary">${{ "%.2f"|format(pedido.total) }}</td>
+            </tr>
+        </tfoot>
+    </table>
+</div>

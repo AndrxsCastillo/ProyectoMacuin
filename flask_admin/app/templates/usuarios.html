@@ -99,6 +99,19 @@
         margin-right: 6px;
     }
     .status-dot.active { background-color: #16a34a; }
+
+    /* Estilos para el Modal de Borrado */
+    .modal-danger-header {
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #fee2e2;
+        padding: 1rem 1.5rem;
+    }
+    
+    .modal-danger-icon {
+        font-size: 1.5rem;
+        color: #dc2626;
+        margin-right: 0.75rem;
+    }
 </style>
 
 <div class="container-fluid pt-3">
@@ -119,7 +132,7 @@
                 <table class="table table-hover table-striped dashboard-table align-middle">
                     <thead>
                         <tr>
-                            <th class="ps-4">ID</th>
+                            <th class="ps-4" style="width: 8%;">ID</th>
                             <th>Nombre Completo</th>
                             <th>Correo Electrónico</th>
                             <th>Rol</th>
@@ -130,7 +143,7 @@
                     <tbody>
                         {% for usuario in usuarios %}
                         <tr>
-                            <td class="ps-4 fw-bold text-muted">#{{ usuario.id }}</td>
+                            <td class="ps-4 fw-bold text-muted">{{ loop.index }}</td>
                             <td class="fw-medium text-dark">
                                 <i class="bi bi-person-circle text-muted me-2" style="font-size: 1.1rem;"></i>
                                 {{ usuario.nombre }}
@@ -155,8 +168,8 @@
                                     <a href="{{ url_for('main.editar_usuario', id=usuario.id) }}" class="btn btn-editar">
                                         Editar
                                     </a>
-                                    <form action="{{ url_for('main.borrar_usuario', id=usuario.id) }}" method="POST" class="d-inline">
-                                        <button type="submit" class="btn btn-borrar" onclick="return confirm('¿Confirma que desea eliminar permanentemente este usuario?');">
+                                    <form action="{{ url_for('main.borrar_usuario', id=usuario.id) }}" method="POST" class="d-inline form-borrar-usuario">
+                                        <button type="submit" class="btn btn-borrar" data-nombre="{{ usuario.nombre }}">
                                             Eliminar
                                         </button>
                                     </form>
@@ -179,4 +192,71 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="modalBorrarUsuario" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header modal-danger-header d-flex align-items-center">
+                <i class="bi bi-person-x-fill modal-danger-icon"></i>
+                <h5 class="modal-title fw-bold text-dark mb-0">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="text-dark fs-6 mb-0" id="mensajeBorrarUsuario"></p>
+                <div class="alert alert-danger mt-3 mb-0 fs-7 border-0">
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i>Esta acción revocará el acceso inmediatamente y no se puede deshacer.
+                </div>
+            </div>
+            <div class="modal-footer bg-light border-top-0">
+                <button type="button" class="btn btn-secondary fw-bold px-4" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger fw-bold px-4 shadow-sm" id="btnConfirmarBorradoUsuario">Sí, eliminar usuario</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    
+    let formParaBorrar = null;
+    let modalBorrarUI = null;
+
+    const formsBorrar = document.querySelectorAll('.form-borrar-usuario');
+
+    formsBorrar.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault(); // Detenemos el envío automático nativo
+            
+            // Atrapamos el formulario actual y el nombre del usuario a borrar
+            formParaBorrar = this;
+            const boton = this.querySelector('.btn-borrar');
+            const nombreUsuario = boton.getAttribute('data-nombre');
+
+            // Actualizamos dinámicamente el texto del modal
+            document.getElementById('mensajeBorrarUsuario').innerHTML = `Estás a punto de eliminar al usuario: <br><strong class="fs-5 text-danger">${nombreUsuario}</strong>`;
+            
+            // Levantamos el modal
+            if (!modalBorrarUI) {
+                modalBorrarUI = new bootstrap.Modal(document.getElementById('modalBorrarUsuario'));
+            }
+            modalBorrarUI.show();
+        });
+    });
+
+    // Acción del botón rojo "Sí, eliminar usuario"
+    document.getElementById('btnConfirmarBorradoUsuario').addEventListener('click', function() {
+        if (formParaBorrar) {
+            formParaBorrar.submit(); // Damos luz verde al envío hacia FastAPI
+        }
+    });
+
+    // Limpiamos la memoria si el usuario cancela o cierra la ventana
+    document.getElementById('modalBorrarUsuario').addEventListener('hidden.bs.modal', function () {
+        formParaBorrar = null;
+    });
+
+});
+</script>
 {% endblock %}

@@ -2,200 +2,198 @@
 
 @section('title', 'Catálogo - MACUIN')
 
-@section('hero')
-<section class="mac-hero">
-  <div class="container d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
-    <div>
-      <h1>Encuentra tus Autopartes</h1>
-      <p>Dale un vistazo a nuestro catálogo</p>
-    </div>
-
-    <div class="d-flex flex-column flex-md-row gap-2 align-items-stretch align-items-md-center">
-      <div class="bg-white rounded-4 p-2 d-flex gap-2" style="min-width: 320px;">
-        <input class="form-control border-0" placeholder="Buscar nombre, marca, categoría">
-        <button class="btn btn-mac px-4">Buscar</button>
-      </div>
-
-      <div class="dropdown">
-        <button class="btn btn-light border rounded-4 px-4 h-100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-
-        </button>
-        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-4">
-          <li>
-            <a class="dropdown-item" href="{{ route('login') }}">Cerrar sesión</a>
-          </li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</section>
-@endsection
-
 @section('content')
-<div class="row g-3">
-  <div class="col-12 col-lg-3">
-    <div class="mac-card p-3">
-      <div class="fw-bold mb-2">Categorías</div>
-      <div class="form-check"><input class="form-check-input" type="checkbox" id="c1"><label class="form-check-label" for="c1">Frenos</label></div>
-      <div class="form-check"><input class="form-check-input" type="checkbox" id="c2"><label class="form-check-label" for="c2">Motor</label></div>
-      <div class="form-check"><input class="form-check-input" type="checkbox" id="c3"><label class="form-check-label" for="c3">Suspensión</label></div>
-      <div class="form-check"><input class="form-check-input" type="checkbox" id="c4"><label class="form-check-label" for="c4">Electricidad</label></div>
-      <div class="form-check"><input class="form-check-input" type="checkbox" id="c5"><label class="form-check-label" for="c5">Carrocería</label></div>
+<style>
+    .btn-agregar {
+        background-color: var(--mac-accent);
+        color: #111827;
+        border: 1px solid var(--mac-accent);
+        border-radius: .4rem;
+        font-weight: 700;
+        font-size: .85rem;
+        padding: .4rem .8rem;
+        transition: all .2s;
+    }
+    .btn-agregar:hover {
+        background-color: #d97706;
+        color: #111827;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(245,158,11,.3);
+    }
+    .filter-btn.active {
+        background-color: var(--mac-primary) !important;
+        color: #fff !important;
+        border-color: var(--mac-primary) !important;
+    }
+</style>
 
-      <hr>
+<div class="container-fluid pt-3">
 
-      <div class="fw-bold mb-2">Marca</div>
-      <div class="form-check"><input class="form-check-input" type="checkbox" id="m1"><label class="form-check-label" for="m1">Bosch</label></div>
-      <div class="form-check"><input class="form-check-input" type="checkbox" id="m2"><label class="form-check-label" for="m2">Brembo</label></div>
-      <div class="form-check"><input class="form-check-input" type="checkbox" id="m3"><label class="form-check-label" for="m3">NGK</label></div>
-      <div class="form-check"><input class="form-check-input" type="checkbox" id="m4"><label class="form-check-label" for="m4">Monroe</label></div>
-      <div class="form-check"><input class="form-check-input" type="checkbox" id="m5"><label class="form-check-label" for="m5">LTH</label></div>
-      <div class="form-check"><input class="form-check-input" type="checkbox" id="m6"><label class="form-check-label" for="m6">Denso</label></div>
+    {{-- Cabecera de página --}}
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <div>
+            <h2 class="fw-bold mb-0 text-dark">Catálogo de Autopartes</h2>
+            <p class="text-muted mb-0" style="font-size:.9rem;">
+                {{ $total }} {{ $total === 1 ? 'producto encontrado' : 'productos encontrados' }}
+            </p>
+        </div>
+        {{-- Buscador --}}
+        <form method="GET" action="{{ route('catalog') }}" class="d-flex gap-2">
+            <input
+                class="form-control"
+                style="min-width:240px;border-radius:.5rem;"
+                name="busqueda"
+                placeholder="Buscar nombre, marca, categoría…"
+                value="{{ $busqueda }}"
+            >
+            <button class="btn btn-mac px-3" type="submit">
+                <i class="bi bi-search"></i>
+            </button>
+            @if($busqueda || $categoriaId)
+                <a href="{{ route('catalog') }}" class="btn btn-outline-secondary px-3">
+                    <i class="bi bi-x-lg"></i>
+                </a>
+            @endif
+        </form>
     </div>
-  </div>
 
-  <div class="col-12 col-lg-9">
     <div class="row g-3">
 
-      <!-- Producto 1 -->
-      <div class="col-12 col-md-6 col-xl-4">
-        <div class="mac-card p-3 h-100 border border-success-subtle">
-          <div class="rounded-4 border d-flex align-items-center justify-content-center position-relative" style="height:140px;background:#f9fafb;">
-            <span class="position-absolute top-0 end-0 m-2 badge rounded-pill text-bg-success">Disponible</span>
-            IMAGEN
-          </div>
-
-          <div class="mt-3">
-            <h6 class="fw-bold">Filtro de Aceite</h6>
-            <p class="mb-1 text-muted">Marca: <strong>Bosch</strong></p>
-            <p class="small text-muted">Sistema de filtrado para motor</p>
-            <div class="fw-bold">$250.00</div>
-          </div>
-
-          <div class="mt-3 d-flex justify-content-end">
-            <button class="btn btn-mac btn-sm px-3">Añadir</button>
-          </div>
+        {{-- ── Sidebar filtros ─────────────────────────────────── --}}
+        <div class="col-12 col-lg-2">
+            <div class="content-card p-3">
+                <div class="fw-bold mb-3" style="font-size:.9rem;text-transform:uppercase;letter-spacing:.05em;color:var(--mac-primary);">
+                    <i class="bi bi-funnel-fill me-1"></i> Categorías
+                </div>
+                <div class="d-flex flex-column gap-1">
+                    <a href="{{ route('catalog', array_filter(['busqueda' => $busqueda])) }}"
+                       class="btn btn-sm text-start rounded-3 filter-btn {{ !$categoriaId ? 'active' : 'btn-outline-secondary' }}">
+                        Todas
+                    </a>
+                    @foreach($categorias as $cat)
+                        <a href="{{ route('catalog', array_filter(['busqueda' => $busqueda, 'categoria' => $cat['id']])) }}"
+                           class="btn btn-sm text-start rounded-3 filter-btn {{ $categoriaId == $cat['id'] ? 'active' : 'btn-outline-secondary' }}">
+                            {{ $cat['nombre'] }}
+                        </a>
+                    @endforeach
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Producto 2 -->
-      <div class="col-12 col-md-6 col-xl-4">
-        <div class="mac-card p-3 h-100 border border-success-subtle">
-          <div class="rounded-4 border d-flex align-items-center justify-content-center position-relative" style="height:140px;background:#f9fafb;">
-            <span class="position-absolute top-0 end-0 m-2 badge rounded-pill text-bg-success">Disponible</span>
-            IMAGEN
-          </div>
+        {{-- ── Tabla de productos ───────────────────────────────── --}}
+        <div class="col-12 col-lg-10">
+            <div class="content-card">
+                <div class="card-body p-4">
 
-          <div class="mt-3">
-            <h6 class="fw-bold">Pastillas de Freno</h6>
-            <p class="mb-1 text-muted">Marca: <strong>Brembo</strong></p>
-            <p class="small text-muted">Sistema de frenado delantero</p>
-            <div class="fw-bold">$780.00</div>
-          </div>
+                    @if(count($productos) === 0)
+                        <div class="text-center py-5">
+                            <i class="bi bi-search text-muted" style="font-size:2.5rem;"></i><br>
+                            <span class="text-muted fw-bold mt-2 d-block">Sin resultados</span>
+                            <small class="text-muted">No encontramos autopartes que coincidan con tu búsqueda.</small>
+                            <div class="mt-3">
+                                <a href="{{ route('catalog') }}" class="btn btn-mac px-4">Ver todo el catálogo</a>
+                            </div>
+                        </div>
+                    @else
+                        <div class="dashboard-table-container">
+                            <table class="table table-hover table-striped dashboard-table align-middle">
+                                <thead>
+                                    <tr>
+                                        <th class="ps-4" style="width:5%;">#</th>
+                                        <th style="width:30%;">Nombre / Descripción</th>
+                                        <th style="width:14%;">Categoría</th>
+                                        <th style="width:12%;">Marca</th>
+                                        <th class="text-center" style="width:10%;">Stock</th>
+                                        <th style="width:11%;">Precio</th>
+                                        <th class="text-center" style="width:18%;">Agregar al carrito</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($productos as $p)
+                                        @php $disponible = ($p['stock_actual'] ?? 0) > 0; @endphp
+                                        <tr>
+                                            <td class="ps-4 fw-bold text-muted">{{ $loop->iteration + ($page - 1) * 9 }}</td>
+                                            <td>
+                                                <strong class="text-dark">{{ $p['nombre'] }}</strong><br>
+                                                @if(!empty($p['descripcion']))
+                                                    <span class="text-muted" style="font-size:.85rem;">
+                                                        {{ Str::limit($p['descripcion'], 55) }}
+                                                    </span>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-secondary rounded-pill fw-bold">
+                                                    {{ $p['categoria_nombre'] ?? 'Sin categoría' }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-secondary rounded-pill fw-bold">{{ $p['marca'] }}</span>
+                                            </td>
+                                            <td class="text-center">
+                                                @if($disponible)
+                                                    @if(($p['stock_actual'] ?? 0) <= ($p['stock_minimo'] ?? 5))
+                                                        <div class="d-flex align-items-center justify-content-center text-warning fw-bold" title="Pocas unidades">
+                                                            <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ $p['stock_actual'] }}
+                                                        </div>
+                                                    @else
+                                                        <span class="fw-bold text-dark">{{ $p['stock_actual'] }}</span>
+                                                    @endif
+                                                @else
+                                                    <span class="badge bg-soft-secondary badge-modern">Agotado</span>
+                                                @endif
+                                            </td>
+                                            <td class="text-success fw-bold">${{ number_format($p['precio'], 2) }}</td>
+                                            <td class="text-center">
+                                                @if($disponible)
+                                                    <form method="POST" action="{{ route('cart.add') }}">
+                                                        @csrf
+                                                        <input type="hidden" name="autoparte_id" value="{{ $p['id'] }}">
+                                                        <button class="btn btn-agregar" type="submit">
+                                                            <i class="bi bi-cart-plus me-1"></i> Agregar
+                                                        </button>
+                                                    </form>
+                                                @else
+                                                    <button class="btn btn-sm btn-outline-secondary" disabled>Agotado</button>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
 
-          <div class="mt-3 d-flex justify-content-end">
-            <button class="btn btn-mac btn-sm px-3">Añadir</button>
-          </div>
+                        {{-- Paginación --}}
+                        @if($pages > 1)
+                            <div class="d-flex justify-content-center mt-4">
+                                <nav>
+                                    <ul class="pagination mb-0">
+                                        <li class="page-item {{ $page <= 1 ? 'disabled' : '' }}">
+                                            <a class="page-link" href="{{ route('catalog', array_filter(['busqueda' => $busqueda, 'categoria' => $categoriaId, 'page' => $page - 1])) }}">
+                                                ‹ Anterior
+                                            </a>
+                                        </li>
+                                        @for($i = 1; $i <= $pages; $i++)
+                                            <li class="page-item {{ $i === $page ? 'active' : '' }}">
+                                                <a class="page-link" href="{{ route('catalog', array_filter(['busqueda' => $busqueda, 'categoria' => $categoriaId, 'page' => $i])) }}">
+                                                    {{ $i }}
+                                                </a>
+                                            </li>
+                                        @endfor
+                                        <li class="page-item {{ $page >= $pages ? 'disabled' : '' }}">
+                                            <a class="page-link" href="{{ route('catalog', array_filter(['busqueda' => $busqueda, 'categoria' => $categoriaId, 'page' => $page + 1])) }}">
+                                                Siguiente ›
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            </div>
+                        @endif
+                    @endif
+
+                </div>
+            </div>
         </div>
-      </div>
-
-      <!-- Producto 3 -->
-      <div class="col-12 col-md-6 col-xl-4">
-        <div class="mac-card p-3 h-100 border border-secondary-subtle opacity-75">
-          <div class="rounded-4 border d-flex align-items-center justify-content-center position-relative" style="height:140px;background:#f9fafb;">
-            <span class="position-absolute top-0 end-0 m-2 badge rounded-pill text-bg-secondary">No disponible</span>
-            IMAGEN
-          </div>
-
-          <div class="mt-3">
-            <h6 class="fw-bold">Bujía</h6>
-            <p class="mb-1 text-muted">Marca: <strong>NGK</strong></p>
-            <p class="small text-muted">Encendido para motor gasolina</p>
-            <div class="fw-bold">$120.00</div>
-          </div>
-
-          <div class="mt-3 d-flex justify-content-end">
-            <button class="btn btn-secondary btn-sm px-3" disabled>No disponible</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Producto 4 -->
-      <div class="col-12 col-md-6 col-xl-4">
-        <div class="mac-card p-3 h-100 border border-success-subtle">
-          <div class="rounded-4 border d-flex align-items-center justify-content-center position-relative" style="height:140px;background:#f9fafb;">
-            <span class="position-absolute top-0 end-0 m-2 badge rounded-pill text-bg-success">Disponible</span>
-            IMAGEN
-          </div>
-
-          <div class="mt-3">
-            <h6 class="fw-bold">Amortiguador</h6>
-            <p class="mb-1 text-muted">Marca: <strong>Monroe</strong></p>
-            <p class="small text-muted">Suspensión delantera</p>
-            <div class="fw-bold">$1,250.00</div>
-          </div>
-
-          <div class="mt-3 d-flex justify-content-end">
-            <button class="btn btn-mac btn-sm px-3">Añadir</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Producto 5 -->
-      <div class="col-12 col-md-6 col-xl-4">
-        <div class="mac-card p-3 h-100 border border-secondary-subtle opacity-75">
-          <div class="rounded-4 border d-flex align-items-center justify-content-center position-relative" style="height:140px;background:#f9fafb;">
-            <span class="position-absolute top-0 end-0 m-2 badge rounded-pill text-bg-secondary">No disponible</span>
-            IMAGEN
-          </div>
-
-          <div class="mt-3">
-            <h6 class="fw-bold">Batería Automotriz</h6>
-            <p class="mb-1 text-muted">Marca: <strong>LTH</strong></p>
-            <p class="small text-muted">12V para automóvil</p>
-            <div class="fw-bold">$2,100.00</div>
-          </div>
-
-          <div class="mt-3 d-flex justify-content-end">
-            <button class="btn btn-secondary btn-sm px-3" disabled>No disponible</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Producto 6 -->
-      <div class="col-12 col-md-6 col-xl-4">
-        <div class="mac-card p-3 h-100 border border-success-subtle">
-          <div class="rounded-4 border d-flex align-items-center justify-content-center position-relative" style="height:140px;background:#f9fafb;">
-            <span class="position-absolute top-0 end-0 m-2 badge rounded-pill text-bg-success">Disponible</span>
-            IMAGEN
-          </div>
-
-          <div class="mt-3">
-            <h6 class="fw-bold">Radiador</h6>
-            <p class="mb-1 text-muted">Marca: <strong>Denso</strong></p>
-            <p class="small text-muted">Sistema de enfriamiento</p>
-            <div class="fw-bold">$1,950.00</div>
-          </div>
-
-          <div class="mt-3 d-flex justify-content-end">
-            <button class="btn btn-mac btn-sm px-3">Añadir</button>
-          </div>
-        </div>
-      </div>
 
     </div>
-
-    <div class="d-flex justify-content-center mt-4">
-      <nav>
-        <ul class="pagination">
-          <li class="page-item"><a class="page-link" href="#">« Anterior</a></li>
-          <li class="page-item active"><a class="page-link" href="#">1</a></li>
-          <li class="page-item"><a class="page-link" href="#">2</a></li>
-          <li class="page-item"><a class="page-link" href="#">3</a></li>
-          <li class="page-item"><a class="page-link" href="#">Siguiente »</a></li>
-        </ul>
-      </nav>
-    </div>
-  </div>
 </div>
 @endsection

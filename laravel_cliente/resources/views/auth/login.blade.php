@@ -1,61 +1,75 @@
 @extends('layouts.app')
 
-@section('title', 'Iniciar sesión - MACUIN')
-
-@section('hero')
-<section class="mac-hero">
-    <div class="container">
-        <h1>Inicia Sesión</h1>
-        <p>Accede para revisar tu carrito y tus pedidos</p>
-    </div>
-</section>
-@endsection
+@section('title', 'Iniciar Sesión - MACUIN')
 
 @section('content')
-<div class="row justify-content-center">
-    <div class="col-12 col-md-8 col-lg-5">
-        <div class="mac-card p-4 p-md-5">
-            <div class="text-center mb-4">
-                <div class="fw-bold fs-5">MACUIN</div>
-                <h2 class="h2 mt-2 mb-1">Iniciar Sesión</h2>
-                <small class="text-muted d-block">Introduce los detalles de tu cuenta</small>
-            </div>
+<div class="container-fluid pt-3">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <div>
+            <h2 class="fw-bold mb-0 text-dark">Iniciar Sesión</h2>
+            <p class="text-muted mb-0" style="font-size:.9rem;">Accede para gestionar tu carrito y tus pedidos</p>
+        </div>
+    </div>
 
-            <form>
-                <div class="mb-3">
-                    <input
-                        class="form-control form-control-lg"
-                        type="email"
-                        placeholder="Correo electrónico"
-                    >
-                    <small class="text-muted">Usa el correo con el que te registraste</small>
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-5">
+            <div class="content-card p-4 p-md-5">
+
+                <div class="text-center mb-4">
+                    <div class="fw-bold fs-5" style="color:var(--mac-primary);">MACUIN</div>
+                    <h3 class="h4 mt-2 mb-1 fw-bold">Bienvenido de vuelta</h3>
+                    <small class="text-muted">Introduce los datos de tu cuenta de cliente</small>
                 </div>
 
-                <div class="mb-2">
-                    <input
-                        class="form-control form-control-lg"
-                        type="password"
-                        placeholder="Contraseña"
-                    >
-                </div>
+                @if($errors->has('general'))
+                    <div class="alert alert-danger border-0 rounded-3 mb-3">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ $errors->first('general') }}
+                    </div>
+                @endif
 
-                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
-                    <div class="form-check m-0">
-                        <input class="form-check-input" type="checkbox" id="remember">
-                        <label class="form-check-label" for="remember">Recordarme</label>
+                <form method="POST" action="{{ route('login.post') }}" novalidate>
+                    @csrf
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-dark">Correo electrónico</label>
+                        <input
+                            class="form-control form-control-lg @error('email') is-invalid @enderror"
+                            type="email"
+                            name="email"
+                            placeholder="tu@correo.com"
+                            value="{{ old('email') }}"
+                            autofocus
+                            autocomplete="email"
+                        >
+                        @error('email')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
 
-                    <a href="#" class="small text-decoration-none">¿Olvidaste tu contraseña?</a>
-                </div>
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold text-dark">Contraseña</label>
+                        <input
+                            class="form-control form-control-lg @error('password') is-invalid @enderror"
+                            type="password"
+                            name="password"
+                            placeholder="••••••••"
+                            autocomplete="current-password"
+                        >
+                        @error('password')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
 
-                <a href="{{ route('catalog') }}" class="btn btn-mac w-100 py-2 fs-5">
-                    Iniciar Sesión
-                </a>
+                    <button type="submit" class="btn btn-mac w-100 py-2 fs-5 shadow-sm">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Iniciar Sesión
+                    </button>
 
-                <div class="text-center mt-4">
-                    <small>¿No tienes cuenta? <a href="{{ route('register') }}">Crear cuenta</a></small>
-                </div>
-            </form>
+                    <div class="text-center mt-4">
+                        <small>¿No tienes cuenta? <a href="{{ route('register') }}" style="color:var(--mac-primary);font-weight:600;">Crear cuenta</a></small>
+                    </div>
+                </form>
+
+            </div>
         </div>
     </div>
 </div>
